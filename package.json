@@ -1,0 +1,31 @@
+{
+  "name": "microsoft-partnercenter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "lint": "tslint --project .",
+    "build": "rm -rf dist/ && tslint --project . && tsc",
+    "prepublish": "rm -rf dist/ && tslint --project . && tsc"
+  },
+  "keywords": [
+    "microsoft-partnercenter-node",
+    "microsoft",
+    "partner center",
+    "rest api",
+    "rest"
+  ],
+  "author": "Josh Stout <joshstout@gmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/got": "^8.3.1",
+    "@types/node": "^10.3.3",
+    "tslint": "^5.10.0",
+    "tslint-config-standard": "^7.0.0",
+    "typescript": "^2.9.2"
+  },
+  "dependencies": {
+    "got": "^8.3.1"
+  }
+}
