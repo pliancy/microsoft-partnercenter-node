@@ -28,7 +28,7 @@ class PartnerCenter {
   accessToken: string
   reqHeaders: any
 
-  constructor(_config: IPartnerCenterConfig) {
+  constructor (_config: IPartnerCenterConfig) {
     this.config = _config
     this.accessToken = ''
     this.reqHeaders = {
@@ -38,7 +38,7 @@ class PartnerCenter {
     }
   }
 
-  async getAllCustomers(): Promise<object[]> {
+  async getAllCustomers (): Promise<object[]> {
     try {
       let res = await this._partnerCenterRequest(
         'https://api.partnercenter.microsoft.com/v1/customers',
@@ -50,7 +50,7 @@ class PartnerCenter {
     }
   }
 
-  async getCustomerById(customerId: string): Promise<object> {
+  async getCustomerById (customerId: string): Promise<object> {
     try {
       let res = await this._partnerCenterRequest(
         `https://api.partnercenter.microsoft.com/v1/customers/${customerId}`,
@@ -62,7 +62,7 @@ class PartnerCenter {
     }
   }
 
-  async getCustomerSubscriptions(customerId: string): Promise<object[]> {
+  async getCustomerSubscriptions (customerId: string): Promise<object[]> {
     try {
       let res = await this._partnerCenterRequest(
         `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions`,
@@ -74,7 +74,7 @@ class PartnerCenter {
     }
   }
 
-  async getCustomerSubscriptionById(
+  async getCustomerSubscriptionById (
     customerId: string,
     subscriptionId: string
   ): Promise<object> {
@@ -89,7 +89,7 @@ class PartnerCenter {
     }
   }
 
-  async updateCustomerSubscriptionUsers(
+  async updateCustomerSubscriptionUsers (
     customerId: string,
     subscriptionId: string,
     usersQuantity: number
@@ -112,7 +112,7 @@ class PartnerCenter {
     }
   }
 
-  private async _authenticate(): Promise<string> {
+  private async _authenticate (): Promise<string> {
     let res = await got(
       'https://login.windows.net/pliancy.onmicrosoft.com/oauth2/token',
       {
@@ -133,7 +133,7 @@ class PartnerCenter {
     return body.access_token
   }
 
-  private async _partnerCenterRequest(url: string, options: any): Promise<any> {
+  private async _partnerCenterRequest (url: string, options: any): Promise<any> {
     try {
       if (!this.accessToken) {
         let token = await this._authenticate()
@@ -157,5 +157,3 @@ class PartnerCenter {
 }
 
 export = PartnerCenter
-
-let a = 5
