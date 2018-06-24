@@ -1,0 +1,18 @@
+// post the below to https://api.partnercenter.microsoft.com/v1/customers/${customerId}/orders for adding EOP1 for example
+// {"lineItems":[{"offerId":"195416C1-3447-423A-B37B-EE59A99A19C4","quantity":1,"lineItemNumber":0}],"billingCycle":"monthly"}
+
+// PATCH https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions/${subscriptionId} for suspending a subscription
+// by setting status key to "suspended"
+
+// PATCH same as above to change quantity of licenses on a subscription with the quantity key set to number of desired licenses
+
+
+// GET https://api.partnercenter.microsoft.com/v1/customers/${customerId}/offers for all valid offers for a customer
+// simply filter on name key in the returned obj.items[] array.
+// id for common ones i use:
+
+// O365 E3 - 796B6B5F-613C-4E24-A17C-EBA730D49C02
+// O365 EOP1 - 195416C1-3447-423A-B37B-EE59A99A19C4
+// O365 EOP2 - 2F707C7C-2433-49A5-A437-9CA7CF40D3EB
+// O365 ProPlus - BE57FF4C-100C-4F1F-B82D-F1C5AB63A665
+// Microsoft E3 - 2B3B8D2D-10AA-4BE4-B5FD-7F2FEB0C3091

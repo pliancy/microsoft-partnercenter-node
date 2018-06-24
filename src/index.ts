@@ -89,6 +89,16 @@ class PartnerCenter {
     }
   }
 
+  async getCustomerSubscriptionByOfferId (customerId: string, offerId: string): Promise<object> {
+    try {
+      let allSubs = await this._partnerCenterRequest(`https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions`, { headers: this.reqHeaders })
+      let sub = JSON.parse(allSubs.body.slice(1)).items.find((e: any) => e.offerId === offerId)
+      return sub
+    } catch (err) {
+      throw err
+    }
+  }
+
   async updateCustomerSubscriptionUsers (
     customerId: string,
     subscriptionId: string,
@@ -107,6 +117,43 @@ class PartnerCenter {
         body: JSON.stringify(subscription)
       })
       return JSON.parse(updateResponse.body.slice(1))
+    } catch (err) {
+      throw err
+    }
+  }
+
+  async updateCustomerSubscription (customerId: string, subscriptionId: string, subscriptionObject: object): Promise<object> {
+    try {
+      let url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions/${subscriptionId}`
+      let updateResponse = await this._partnerCenterRequest(url, {
+        headers: this.reqHeaders,
+        method: 'patch',
+        body: JSON.stringify(subscriptionObject)
+      })
+      return JSON.parse(updateResponse.body.slice(1))
+    } catch (err) {
+      throw err
+    }
+  }
+
+  async createSubscription (customerId: string, offerId: string, usersQuantity: number, billingCycle: 'monthly' | 'annual'): Promise<object> {
+    try {
+      let url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/orders`
+      let createResponse = await this._partnerCenterRequest(url, {
+        headers: this.reqHeaders,
+        method: 'post',
+        body: JSON.stringify({
+          lineItems: [
+            {
+              offerId: offerId,
+              quantity: usersQuantity,
+              lineItemNumber: 0
+            }
+          ],
+          billingCycle: billingCycle
+        })
+      })
+      return JSON.parse(createResponse.body.slice(1))
     } catch (err) {
       throw err
     }
