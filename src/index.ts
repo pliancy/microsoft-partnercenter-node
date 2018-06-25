@@ -191,7 +191,8 @@ class PartnerCenter {
     } catch (err) {
       try {
         if (err.statusCode === 401) {
-          this.accessToken = await this._authenticate()
+          let token = await this._authenticate()
+          options.headers.authorization = `Bearer ${token}`
           let res = await got(url, options)
           return res
         }
