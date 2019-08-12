@@ -62,8 +62,7 @@ class PartnerCenter {
     }
   }
 
-  // Returns an invoice pdf as a buffer stream
-  async getInvoicePDF (invoiceID: string) {
+  async getInvoicePDF (invoiceID: string): Promise<Buffer> {
     try {
       let res = await this._partnerCenterRequest(
         `https://api.partnercenter.microsoft.com/v1/invoices/${invoiceID}/documents/statement`,
