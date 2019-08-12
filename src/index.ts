@@ -50,6 +50,30 @@ class PartnerCenter {
     }
   }
 
+  async getInvoices (): Promise<object[]> {
+    try {
+      let res = await this._partnerCenterRequest(
+        'https://api.partnercenter.microsoft.com/v1/invoices',
+        { headers: this.reqHeaders }
+      )
+      return JSON.parse(res.body)
+    } catch (err) {
+      throw err
+    }
+  }
+
+  async getInvoicePDF (invoiceID: string): Promise<Buffer> {
+    try {
+      let res = await this._partnerCenterRequest(
+        `https://api.partnercenter.microsoft.com/v1/invoices/${invoiceID}/documents/statement`,
+        { headers: this.reqHeaders, encoding: null }
+      )
+      return res.body
+    } catch (err) {
+      throw err
+    }
+  }
+
   async getCustomerById (customerId: string): Promise<object> {
     try {
       let res = await this._partnerCenterRequest(
