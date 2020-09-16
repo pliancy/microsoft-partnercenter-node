@@ -233,7 +233,7 @@ class PartnerCenter {
         body: JSON.stringify(body)
       })
       return {
-        batchTrackingId: createResponse.headers.Location.split('/').pop()
+        batchTrackingId: createResponse.headers.location.split('/').pop()
       }
     } catch (err) {
       throw err
