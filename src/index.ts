@@ -311,7 +311,7 @@ class PartnerCenter {
       }
 
       const res = await got(
-        `https://login.microsoftonline.com/${this.config.tenantId}/oauth2/v2.0/token`,
+        `https://login.microsoftonline.com/${this.config.tenantId}/oauth2/token`,
         {
           method: 'post',
           headers: {
