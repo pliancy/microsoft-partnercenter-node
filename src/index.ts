@@ -10,11 +10,17 @@ import qs from 'querystring'
 interface IPartnerCenterConfig {
   /** the client_id from partnercenter */
   tenantId: string
-  authentication: ClientAuth | BearerAuth
+  authentication: ClientAuth | BearerAuth | RefreshTokenAuth
 }
 interface ClientAuth {
   clientId: string
   clientSecret: string
+  refreshToken?: string
+}
+interface RefreshTokenAuth {
+  clientId: string
+  clientSecret: string
+  refreshToken: string
 }
 
 interface BearerAuth {
@@ -283,16 +289,42 @@ class PartnerCenter {
     }
   }
 
-  isClientAuth = (e: ClientAuth | BearerAuth): e is ClientAuth => {
+  isClientAuth = (
+    e: ClientAuth | BearerAuth | RefreshTokenAuth
+  ): e is ClientAuth => {
     return (e as Partial<ClientAuth>).clientId !== undefined
   }
 
-  isBearerAuth = (e: ClientAuth | BearerAuth): e is BearerAuth => {
+  isBearerAuth = (
+    e: ClientAuth | BearerAuth | RefreshTokenAuth
+  ): e is BearerAuth => {
     return (e as Partial<BearerAuth>).bearerToken !== undefined
   }
 
+  isRefreshTokenAuth = (
+    e: ClientAuth | BearerAuth | RefreshTokenAuth
+  ): e is RefreshTokenAuth => {
+    return (e as Partial<RefreshTokenAuth>).refreshToken !== undefined
+  }
+
   private async _authenticate (): Promise<string | undefined> {
-    if (this.isClientAuth(this.config.authentication)) {
+    if (
+      this.isClientAuth(this.config.authentication) ||
+      this.isRefreshTokenAuth(this.config.authentication)
+    ) {
+      const body: any = {
+        client_id: this.config.authentication.clientId,
+        client_secret: this.config.authentication.clientSecret
+      }
+
+      if (this.isRefreshTokenAuth(this.config.authentication)) {
+        body.grant_type = 'refresh_token'
+        body.refresh_token = this.config.authentication.refreshToken
+      } else if (this.isClientAuth(this.config.authentication)) {
+        body.grant_type = 'client_credentials'
+        body.resource = 'https://graph.windows.net'
+      }
+
       const res = await got(
         `https://login.windows.net/${this.config.tenantId}/oauth2/token`,
         {
@@ -300,17 +332,12 @@ class PartnerCenter {
           headers: {
             'content-type': 'application/x-www-form-urlencoded'
           },
-          body: qs.stringify({
-            grant_type: 'client_credentials',
-            scope: 'https://graph.microsoft.com/.default',
-            client_id: this.config.authentication.clientId,
-            client_secret: this.config.authentication.clientSecret
-          })
+          body: qs.stringify(body)
         }
       )
-      const body: IOAuthResponse = JSON.parse(res.body)
-      this.accessToken = body.access_token
-      return body.access_token
+      const resBody: IOAuthResponse = JSON.parse(res.body)
+      this.accessToken = resBody.access_token
+      return resBody.access_token
     }
   }
 
@@ -318,7 +345,10 @@ class PartnerCenter {
     url: string,
     options: any
   ): Promise<any> {
-    if (this.isClientAuth(this.config.authentication)) {
+    if (
+      this.isClientAuth(this.config.authentication) ||
+      this.isRefreshTokenAuth(this.config.authentication)
+    ) {
       try {
         if (this.accessToken === '') {
           const token = await this._authenticate()
