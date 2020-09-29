@@ -14,7 +14,10 @@
     "precommit": "lint-staged"
   },
   "lint-staged": {
-    "{src,test}/**/*.ts": ["tslint --fix", "git add"]
+    "{src,test}/**/*.ts": [
+      "tslint --fix",
+      "git add"
+    ]
   },
   "keywords": [
     "microsoft-partnercenter-node",
