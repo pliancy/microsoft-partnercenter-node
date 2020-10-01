@@ -9,8 +9,17 @@ import qs from 'querystring'
  */
 interface IPartnerCenterConfig {
   /** the client_id from partnercenter */
+  tenantId: string
+  authentication: ClientAuth | BearerAuth
+}
+interface ClientAuth {
   clientId: string
   clientSecret: string
+  refreshToken?: string
+}
+
+interface BearerAuth {
+  bearerToken: string
 }
 
 interface IOAuthResponse {
@@ -38,9 +47,10 @@ class PartnerCenter {
     }
   }
 
+  /* eslint-disable no-useless-catch */
   async getAllCustomers (): Promise<object[]> {
     try {
-      let res = await this._partnerCenterRequest(
+      const res = await this._partnerCenterRequest(
         'https://api.partnercenter.microsoft.com/v1/customers',
         { headers: this.reqHeaders }
       )
@@ -52,7 +62,7 @@ class PartnerCenter {
 
   async getInvoices (): Promise<object[]> {
     try {
-      let res = await this._partnerCenterRequest(
+      const res = await this._partnerCenterRequest(
         'https://api.partnercenter.microsoft.com/v1/invoices',
         { headers: this.reqHeaders }
       )
@@ -64,7 +74,7 @@ class PartnerCenter {
 
   async getInvoicePDF (invoiceID: string): Promise<Buffer> {
     try {
-      let res = await this._partnerCenterRequest(
+      const res = await this._partnerCenterRequest(
         `https://api.partnercenter.microsoft.com/v1/invoices/${invoiceID}/documents/statement`,
         { headers: this.reqHeaders, encoding: null }
       )
@@ -76,7 +86,7 @@ class PartnerCenter {
 
   async getCustomerById (customerId: string): Promise<object> {
     try {
-      let res = await this._partnerCenterRequest(
+      const res = await this._partnerCenterRequest(
         `https://api.partnercenter.microsoft.com/v1/customers/${customerId}`,
         { headers: this.reqHeaders }
       )
@@ -88,7 +98,7 @@ class PartnerCenter {
 
   async getCustomerSubscriptions (customerId: string): Promise<object[]> {
     try {
-      let res = await this._partnerCenterRequest(
+      const res = await this._partnerCenterRequest(
         `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions`,
         { headers: this.reqHeaders }
       )
@@ -103,7 +113,7 @@ class PartnerCenter {
     subscriptionId: string
   ): Promise<object> {
     try {
-      let res = await this._partnerCenterRequest(
+      const res = await this._partnerCenterRequest(
         `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions/${subscriptionId}`,
         { headers: this.reqHeaders }
       )
@@ -113,10 +123,18 @@ class PartnerCenter {
     }
   }
 
-  async getCustomerSubscriptionByOfferId (customerId: string, offerId: string): Promise<object> {
+  async getCustomerSubscriptionByOfferId (
+    customerId: string,
+    offerId: string
+  ): Promise<object> {
     try {
-      let allSubs = await this._partnerCenterRequest(`https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions`, { headers: this.reqHeaders })
-      let sub = JSON.parse(allSubs.body.slice(1)).items.find((e: any) => e.offerId === offerId)
+      const allSubs = await this._partnerCenterRequest(
+        `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions`,
+        { headers: this.reqHeaders }
+      )
+      const sub = JSON.parse(allSubs.body.slice(1)).items.find(
+        (e: any) => e.offerId === offerId
+      )
       return sub
     } catch (err) {
       throw err
@@ -129,13 +147,13 @@ class PartnerCenter {
     usersQuantity: number
   ): Promise<object> {
     try {
-      let url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions/${subscriptionId}`
-      let res = await this._partnerCenterRequest(url, {
+      const url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions/${subscriptionId}`
+      const res = await this._partnerCenterRequest(url, {
         headers: this.reqHeaders
       })
-      let subscription = JSON.parse(res.body.slice(1))
+      const subscription = JSON.parse(res.body.slice(1))
       subscription.Quantity = usersQuantity
-      let updateResponse = await this._partnerCenterRequest(url, {
+      const updateResponse = await this._partnerCenterRequest(url, {
         headers: this.reqHeaders,
         method: 'patch',
         body: JSON.stringify(subscription)
@@ -146,10 +164,14 @@ class PartnerCenter {
     }
   }
 
-  async updateCustomerSubscription (customerId: string, subscriptionId: string, subscriptionObject: object): Promise<object> {
+  async updateCustomerSubscription (
+    customerId: string,
+    subscriptionId: string,
+    subscriptionObject: object
+  ): Promise<object> {
     try {
-      let url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions/${subscriptionId}`
-      let updateResponse = await this._partnerCenterRequest(url, {
+      const url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions/${subscriptionId}`
+      const updateResponse = await this._partnerCenterRequest(url, {
         headers: this.reqHeaders,
         method: 'patch',
         body: JSON.stringify(subscriptionObject)
@@ -160,10 +182,15 @@ class PartnerCenter {
     }
   }
 
-  async createSubscription (customerId: string, offerId: string, usersQuantity: number, billingCycle: 'monthly' | 'annual'): Promise<object> {
+  async createSubscription (
+    customerId: string,
+    offerId: string,
+    usersQuantity: number,
+    billingCycle: 'monthly' | 'annual'
+  ): Promise<object> {
     try {
-      let url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/orders`
-      let createResponse = await this._partnerCenterRequest(url, {
+      const url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/orders`
+      const createResponse = await this._partnerCenterRequest(url, {
         headers: this.reqHeaders,
         method: 'post',
         body: JSON.stringify({
@@ -183,45 +210,165 @@ class PartnerCenter {
     }
   }
 
-  private async _authenticate (): Promise<string> {
-    let res = await got(
-      'https://login.windows.net/pliancy.onmicrosoft.com/oauth2/token',
-      {
-        method: 'post',
-        headers: {
-          'content-type': 'application/x-www-form-urlencoded'
-        },
-        body: qs.stringify({
-          grant_type: 'client_credentials',
-          resource: 'https://graph.windows.net',
-          client_id: this.config.clientId,
-          client_secret: this.config.clientSecret
-        })
+  async uploadDeviceBatch (
+    customerId: string,
+    batchId: string,
+    devices: [object],
+    existingBatch?: boolean
+  ): Promise<object> {
+    try {
+      let url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/deviceBatches`
+      let body: any = {}
+      if (typeof existingBatch !== 'undefined') {
+        url += `${batchId}/devices`
+        body = devices
+      } else {
+        body = {
+          Attributes: {
+            ObjectType: 'DeviceBatchCreationRequest'
+          },
+          BatchId: batchId,
+          Devices: devices
+        }
       }
-    )
-    let body: IOAuthResponse = JSON.parse(res.body)
-    this.accessToken = body.access_token
-    return body.access_token
+      const createResponse = await this._partnerCenterRequest(url, {
+        headers: this.reqHeaders,
+        method: 'post',
+        body: JSON.stringify(body)
+      })
+      return {
+        batchTrackingId: createResponse.headers.location.split('/').pop()
+      }
+    } catch (err) {
+      throw err
+    }
   }
 
-  private async _partnerCenterRequest (url: string, options: any): Promise<any> {
+  async getDeviceBatches (customerId: string): Promise<object> {
     try {
-      if (!this.accessToken) {
-        let token = await this._authenticate()
-        options.headers.authorization = `Bearer ${token}`
-      }
-      let res = await got(url, options)
-      return res
+      const url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/deviceBatches`
+      const createResponse = await this._partnerCenterRequest(url, {
+        headers: this.reqHeaders,
+        method: 'get'
+      })
+      return JSON.parse(createResponse.body.slice(1))
     } catch (err) {
+      throw err
+    }
+  }
+
+  async getDeviceBatch (customerId: string, batchId: string): Promise<object> {
+    try {
+      const url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/deviceBatches/${batchId}/devices`
+
+      const createResponse = await this._partnerCenterRequest(url, {
+        headers: this.reqHeaders,
+        method: 'get'
+      })
+      return JSON.parse(createResponse.body.slice(1))
+    } catch (err) {
+      throw err
+    }
+  }
+
+  async getDeviceBatchStatus (
+    customerId: string,
+    batchTrackingId: string
+  ): Promise<object> {
+    try {
+      const url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/batchjobstatus/${batchTrackingId}`
+      const createResponse = await this._partnerCenterRequest(url, {
+        headers: this.reqHeaders,
+        method: 'get'
+      })
+      return JSON.parse(createResponse.body.slice(1))
+    } catch (err) {
+      throw err
+    }
+  }
+
+  isClientAuth = (e: ClientAuth | BearerAuth): e is ClientAuth => {
+    return (e as Partial<ClientAuth>).clientId !== undefined
+  }
+
+  isBearerAuth = (e: ClientAuth | BearerAuth): e is BearerAuth => {
+    return (e as Partial<BearerAuth>).bearerToken !== undefined
+  }
+
+  private async _authenticate (): Promise<string | undefined> {
+    if (this.isClientAuth(this.config.authentication)) {
+      const body: any = {
+        client_id: this.config.authentication.clientId,
+        client_secret: this.config.authentication.clientSecret
+      }
+
+      if (typeof this.config.authentication.refreshToken !== 'undefined') {
+        body.grant_type = 'refresh_token'
+        body.refresh_token = this.config.authentication.refreshToken
+      } else {
+        body.resource = 'https://graph.windows.net'
+        body.grant_type = 'client_credentials'
+      }
+
+      const res = await got(
+        `https://login.microsoftonline.com/${this.config.tenantId}/oauth2/token`,
+        {
+          method: 'post',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: qs.stringify(body)
+        }
+      )
+
+      const resBody: IOAuthResponse = JSON.parse(res.body)
+      this.accessToken = resBody.access_token
+
+      return resBody.access_token
+    }
+  }
+
+  private async _partnerCenterRequest (
+    url: string,
+    options: any
+  ): Promise<any> {
+    if (this.isClientAuth(this.config.authentication)) {
       try {
+        if (this.accessToken === '') {
+          const token = await this._authenticate()
+          if (typeof token === 'string') {
+            options.headers.Authorization = `Bearer ${token}`
+          }
+        } else {
+          options.headers.Authorization = `Bearer ${this.accessToken}`
+        }
+        const res = await got(url, options)
+        return res
+      } catch (err) {
         if (err.statusCode === 401) {
-          let token = await this._authenticate()
-          options.headers.authorization = `Bearer ${token}`
-          let res = await got(url, options)
+          const token = await this._authenticate()
+          if (typeof token === 'string') {
+            options.headers.Authorization = `Bearer ${token}`
+          }
+          const res = await got(url, options)
           return res
         }
         throw err
+      }
+    } else if (this.isBearerAuth(this.config.authentication)) {
+      try {
+        if (this.accessToken === '') {
+          this.accessToken = this.config.authentication.bearerToken
+          options.headers.Authorization = `Bearer ${this.accessToken}`
+        }
+        const res = await got(url, options)
+        return res
       } catch (err) {
+        if (err.statusCode === 401) {
+          options.headers.Authorization = `Bearer ${this.config.authentication.bearerToken}`
+          const res = await got(url, options)
+          return res
+        }
         throw err
       }
     }
