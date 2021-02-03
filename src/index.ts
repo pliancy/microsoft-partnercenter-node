@@ -158,14 +158,15 @@ class PartnerCenter {
     }
     try {
       if (!this.accessToken) {
-        const token = await this._authenticate()
-        options.headers.authorization = `Bearer ${token}`
+        await this._authenticate()
+        options.headers.authorization = `Bearer ${this.accessToken}`
       }
       const res = await axios(url, options)
       return res.data
     } catch (err) {
-      if (err.response?.status === 401) {
-        this.accessToken = await this._authenticate()
+      if (err.response?.status === 401 || err.response?.status === 500) {
+        await this._authenticate()
+        options.headers.authorization = `Bearer ${this.accessToken}`
         const res = await axios(url, options)
         return res.data
       }
