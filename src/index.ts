@@ -164,7 +164,7 @@ class PartnerCenter {
       const res = await axios(url, options)
       return res.data
     } catch (err) {
-      if (err.statusCode === 401) {
+      if (err.response?.status === 401) {
         this.accessToken = await this._authenticate()
         const res = await axios(url, options)
         return res.data
