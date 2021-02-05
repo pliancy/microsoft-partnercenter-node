@@ -2,8 +2,11 @@ import axios, { AxiosRequestConfig } from 'axios'
 import qs from 'querystring'
 
 interface IPartnerCenterConfig {
+  /** partner center primary domain for your partner account */
   partnerDomain: string
   authentication: ClientAuth
+  /** timeout threshold in milliseconds */
+  timeoutMs?: number
 }
 interface ClientAuth {
   clientId: string
@@ -60,7 +63,6 @@ class PartnerCenter {
   async getCustomerSubscriptions(customerId: string): Promise<object[]> {
     const res = await this._partnerCenterRequest(
       `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions`,
-      { headers: this.reqHeaders },
     )
     return res.items
   }
@@ -154,6 +156,7 @@ class PartnerCenter {
   private async _partnerCenterRequest(url: string, optionsOverride?: AxiosRequestConfig): Promise<any> {
     const options: AxiosRequestConfig = {
       headers: this.reqHeaders,
+      timeout: this.config.timeoutMs ?? 20000,
       ...(optionsOverride ?? {}),
     }
     try {
