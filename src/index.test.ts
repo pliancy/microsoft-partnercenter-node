@@ -1,3 +1,3 @@
 it('does nothing for now', () => {
-  expect(true).toEqual(true)
+    expect(true).toEqual(true)
 })
