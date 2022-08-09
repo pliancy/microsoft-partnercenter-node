@@ -197,9 +197,10 @@ class PartnerCenter {
         return this._partnerCenterRequest(url)
     }
 
-    async getAllProducts(itemId: string): Promise<any> {
-        const url = `https://api.partnercenter.microsoft.com/v1/products/${itemId}`
+    async getAllProducts(productId: string): Promise<any[]> {
+        const url = `https://api.partnercenter.microsoft.com/v1/products/${productId}`
         const productForCustomers = await this._partnerCenterRequest(url)
+        return productForCustomers.items
     }
 
     /**
@@ -211,7 +212,8 @@ class PartnerCenter {
         targetSegment = 'Commercial',
     ): Promise<any[]> {
         const url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/products?targetSegment=${targetSegment}&targetView=${targetView}`
-        return this._partnerCenterRequest(url)
+        const res = await this._partnerCenterRequest(url)
+        return res.items
     }
 
     async getAllProductSkusByCustomer(customerId: string, productId: string): Promise<any[]> {
