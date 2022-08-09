@@ -23,6 +23,39 @@ interface IOAuthResponse {
     access_token: string
 }
 
+interface NewCommerceMigration {
+    /** A subscription identifier that indicates which subscription requires validation for migration. */
+    currentSubscriptionId: string
+    /** Term duration can be specified to be changed upon migration.*/
+    termDuration?: string
+    /** Billing cycle can be specified to be changed upon migration. */
+    billingCycle?: 'Monthly' | 'Annual'
+    /** A new term can be started in NCE upon migration. */
+    purchaseFullTerm?: boolean
+    /** License quantity for a subscription can be increased or decreased upon migration. */
+    quantity?: boolean
+    /** A new subscription can be created in NCE upon migration. */
+}
+
+interface CreateNewCommerceMigration extends NewCommerceMigration {
+    addOnMigrations?: NewCommerceMigration[]
+}
+
+interface NewCommerceMigrationResponse {
+    id: string
+    startedTime: Date
+    currentSubscriptionId: string
+    status: string
+    customerTenantId: string
+    catalogItemId: string
+    subscriptionEndDate: Date
+    quantity: number
+    termDuration: string
+    billingCycle: string
+    purchaseFullTerm: boolean
+    addons: NewCommerceMigration[]
+}
+
 class PartnerCenter {
     private readonly config: IPartnerCenterConfig
     private accessToken: string
@@ -137,6 +170,65 @@ class PartnerCenter {
             },
         })
         return res
+    }
+
+    async createNewCommerceMigration(
+        customerId: string,
+        newCommerceMigration: CreateNewCommerceMigration,
+    ): Promise<NewCommerceMigrationResponse> {
+        const url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/migrations/newcommerce`
+        const res = await this._partnerCenterRequest(url, {
+            method: 'post',
+            data: newCommerceMigration,
+        })
+        return res
+    }
+
+    async getNewCommerceMigration(
+        customerId: string,
+        migrationId: string,
+    ): Promise<NewCommerceMigrationResponse> {
+        const url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/migrations/newcommerce/${migrationId}`
+        return this._partnerCenterRequest(url)
+    }
+
+    async getAllOffers(countryId: string): Promise<any[]> {
+        const url = `https://api.partnercenter.microsoft.com/v1/offers?country=${countryId}`
+        return this._partnerCenterRequest(url)
+    }
+
+    async getAllProducts(itemId: string): Promise<any> {
+        const url = `https://api.partnercenter.microsoft.com/v1/products/${itemId}`
+        const productForCustomers = await this._partnerCenterRequest(url)
+    }
+
+    /**
+     * @param targetView options listed here in the docs: https://docs.microsoft.com/en-us/partner-center/develop/get-a-list-of-products-by-customer#request-uri-parameters
+     */
+    async getAllProductsByCustomer(
+        customerId: string,
+        targetView = 'OnlineServices',
+        targetSegment = 'Commercial',
+    ): Promise<any[]> {
+        const url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/products?targetSegment=${targetSegment}&targetView=${targetView}`
+        return this._partnerCenterRequest(url)
+    }
+
+    async getAllProductSkusByCustomer(customerId: string, productId: string): Promise<any[]> {
+        const url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/products/${productId}/skus`
+        const skus = await this._partnerCenterRequest(url)
+        return skus.items
+    }
+
+    async getAllNceProductOffersByCustomer(customerId: string, productId: string): Promise<any[]> {
+        const skus = await this.getAllProductSkusByCustomer(customerId, productId)
+        const skuOffers = []
+        for (const sku of skus) {
+            const url = `https://api.partnercenter.microsoft.com/v1/customers/${customerId}${sku.links.availabilities.uri}`
+            const offers = await this._partnerCenterRequest(url)
+            skuOffers.push(...offers.items)
+        }
+        return skuOffers
     }
 
     private async _authenticate(): Promise<string> {
