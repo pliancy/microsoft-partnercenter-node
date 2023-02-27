@@ -6,7 +6,8 @@
     }
   },
   "dependencies": {
-    "axios": "1.3.4"
+    "axios": "1.3.4",
+    "tslib": "2.5.0"
   },
   "description": "",
   "devDependencies": {
@@ -34,12 +35,15 @@
     "rest"
   ],
   "license": "MIT",
-  "main": "index.js",
+  "main": "dist/index.js",
   "name": "microsoft-partnercenter",
   "repository": {
     "type": "git",
     "url": "https://github.com/pliancy/microsoft-partnercenter-node"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "run-s -l clean test tsc",
     "build:check": "tsc --noEmit",
@@ -53,10 +57,9 @@
     "test": "jest",
     "tsc": "tsc -p tsconfig.build.json"
   },
-  "types": "index.d.ts",
   "version": "1.0.1",
   "volta": {
-    "node": "14.17.3",
-    "yarn": "1.22.10"
+    "node": "18.14.2",
+    "yarn": "1.22.19"
   }
 }
