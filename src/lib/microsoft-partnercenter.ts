@@ -12,16 +12,16 @@ export class PartnerCenter {
     }
 
     async getAllCustomers(): Promise<Customer[]> {
-        const res: { items: Customer[] } = await this.httpAgent(
+        const res = (await this.httpAgent(
             'https://api.partnercenter.microsoft.com/v1/customers',
-        )
+        )) as unknown as { items: Customer[] }
         return res.items
     }
 
     async getInvoices() {
-        const res: { items: Invoice[] } = await this.httpAgent(
+        const res = (await this.httpAgent(
             'https://api.partnercenter.microsoft.com/v1/invoices',
-        )
+        )) as unknown as { items: Invoice[] }
         return res.items
     }
 
@@ -29,28 +29,28 @@ export class PartnerCenter {
         const res = (await this.httpAgent(
             `https://api.partnercenter.microsoft.com/v1/invoices/${invoiceID}/documents/statement`,
             { responseType: 'arraybuffer' },
-        )) as Buffer
+        )) as unknown as Buffer
         return res
     }
 
     async getCustomerById(customerId: string) {
         const res = (await this.httpAgent(
             `https://api.partnercenter.microsoft.com/v1/customers/${customerId}`,
-        )) as Customer
+        )) as unknown as Customer
         return res
     }
 
     async getCustomerSubscriptions(customerId: string) {
-        const res: { items: Subscription[] } = await this.httpAgent(
+        const res = (await this.httpAgent(
             `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions`,
-        )
+        )) as unknown as { items: Subscription[] }
         return res.items
     }
 
     async getCustomerSubscriptionById(customerId: string, subscriptionId: string) {
-        const res: Subscription = await this.httpAgent(
+        const res = (await this.httpAgent(
             `https://api.partnercenter.microsoft.com/v1/customers/${customerId}/subscriptions/${subscriptionId}`,
-        )
+        )) as unknown as Subscription
         return res
     }
 
