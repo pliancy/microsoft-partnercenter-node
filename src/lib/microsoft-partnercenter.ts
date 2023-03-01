@@ -105,8 +105,8 @@ export class MicrosoftPartnerCenter {
         return data
     }
 
-    /*
-     * This method creates an order for the first SKU and first availability found for the given product id
+    /**
+     * This method creates an order for the first SKU and first availability found for the given product id (NCE)
      */
     async createOrderByProductId(
         customerId: string,
