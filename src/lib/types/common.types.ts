@@ -37,3 +37,5 @@ export enum Method {
     Delete = 'DELETE',
     Put = 'PUT',
 }
+
+export type BillingPlan = 'P1M' | 'P1Y' | 'P3Y'

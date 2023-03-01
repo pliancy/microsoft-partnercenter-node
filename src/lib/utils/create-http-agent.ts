@@ -34,5 +34,5 @@ const authenticate = async (config: IPartnerCenterConfig): Promise<string> => {
         },
     )
     const body: IOAuthResponse = res.data
-    return body.access_token
+    return body?.access_token ?? ''
 }
