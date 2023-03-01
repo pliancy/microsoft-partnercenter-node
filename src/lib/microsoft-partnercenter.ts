@@ -8,7 +8,7 @@ import { Sku } from './types/sku.types'
 import type { Subscription } from './types/subscriptions.types'
 import { createHttpAgent } from './utils/create-http-agent'
 
-export class PartnerCenter {
+export class MicrosoftPartnerCenter {
     private readonly httpAgent: AxiosInstance
     constructor(config: IPartnerCenterConfig) {
         this.httpAgent = createHttpAgent(config)

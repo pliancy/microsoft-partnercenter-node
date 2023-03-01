@@ -38,14 +38,14 @@ export interface OrderResponse {
     transactionType: string
     links: Links
     client: any
-    attributes: Attributes
+    attributes: OrderAttributes
 }
 
-export interface Attributes {
+export interface OrderAttributes {
     objectType: string
 }
 
-export interface Links {
+interface Links {
     self: Link
     provisioningStatus: Link
     patchOperation: Link

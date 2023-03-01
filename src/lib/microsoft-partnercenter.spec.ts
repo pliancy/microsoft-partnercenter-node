@@ -1,12 +1,12 @@
-import { PartnerCenter } from './microsoft-partnercenter'
+import { MicrosoftPartnerCenter } from './microsoft-partnercenter'
 import mockAxios from 'jest-mock-axios'
 import { OrderLineItem } from './types/orders.types'
 
 describe('Microsoft Partner Center', () => {
-    let partnerCenter: PartnerCenter
+    let partnerCenter: MicrosoftPartnerCenter
 
     beforeEach(() => {
-        partnerCenter = new PartnerCenter({
+        partnerCenter = new MicrosoftPartnerCenter({
             partnerDomain: 'test',
             authentication: {
                 clientId: 'test',

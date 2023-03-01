@@ -1,6 +1,5 @@
-import { PartnerCenter } from './lib/microsoft-partnercenter'
+import { MicrosoftPartnerCenter } from './lib/microsoft-partnercenter'
+export default MicrosoftPartnerCenter
 
-export * from './lib/microsoft-partnercenter'
+export { MicrosoftPartnerCenter }
 export * from './lib/types'
-
-export default PartnerCenter

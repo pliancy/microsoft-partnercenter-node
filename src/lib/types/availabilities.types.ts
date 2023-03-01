@@ -1,7 +1,7 @@
 import { BillingPlan, Link } from './common.types'
 import { Sku } from './sku.types'
 
-export interface Attributes {
+interface Attributes {
     objectType: string
 }
 
