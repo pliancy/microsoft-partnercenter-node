@@ -3,6 +3,7 @@ import qs from 'querystring'
 import { IOAuthResponse, IPartnerCenterConfig } from '../types/common.types'
 
 let accessToken = ''
+let reAuthed = false
 
 export function createHttpAgent(config: IPartnerCenterConfig): AxiosInstance {
     const baseURL = 'https://api.partnercenter.microsoft.com/v1/'
@@ -19,11 +20,13 @@ export function createHttpAgent(config: IPartnerCenterConfig): AxiosInstance {
     agent.interceptors.response.use(
         (res) => res,
         async (err) => {
-            if (err.response?.status === 401) {
+            if (err.response?.status === 401 && !reAuthed) {
+                reAuthed = true
                 accessToken = await authenticate(config)
                 err.config.headers.authorization = `Bearer ${accessToken}`
                 return agent.request(err.config)
             }
+            reAuthed = false
             throw err
         },
     )
