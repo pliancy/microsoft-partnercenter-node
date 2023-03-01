@@ -15,6 +15,19 @@ export function createHttpAgent(config: IPartnerCenterConfig): AxiosInstance {
         req.headers.authorization = `Bearer ${accessToken}`
         return req
     })
+
+    agent.interceptors.response.use(
+        (res) => res,
+        async (err) => {
+            if (err.response?.status === 401) {
+                accessToken = await authenticate(config)
+                err.config.headers.authorization = `Bearer ${accessToken}`
+                return agent.request(err.config)
+            }
+            throw err
+        },
+    )
+
     return agent
 }
 
