@@ -5,7 +5,7 @@ import { IOAuthResponse, IPartnerCenterConfig } from '../types/common.types'
 let accessToken = ''
 
 export function createHttpAgent(config: IPartnerCenterConfig): AxiosInstance {
-    const baseURL = `https://api.partnercenter.microsoft.com/v1/`
+    const baseURL = 'https://api.partnercenter.microsoft.com/v1/'
     const agent = axios.create({ baseURL })
 
     agent.interceptors.request.use(async (req) => {
