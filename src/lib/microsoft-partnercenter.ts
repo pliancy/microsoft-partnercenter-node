@@ -3,7 +3,7 @@ import { Availability } from './types/availabilities.types'
 import type { IPartnerCenterConfig } from './types/common.types'
 import type { Customer } from './types/customers.types'
 import type { Invoice } from './types/invoices.types'
-import { OrderLineItem, OrderLineItemOptions, OrderReturn } from './types/orders.types'
+import { OrderLineItem, OrderLineItemOptions, OrderResponse } from './types/orders.types'
 import { Sku } from './types/sku.types'
 import type { Subscription } from './types/subscriptions.types'
 import { createHttpAgent } from './utils/create-http-agent'
@@ -89,7 +89,7 @@ export class PartnerCenter {
         customerId: string,
         billingCycle: 'monthly' | 'annual',
         lineItems: OrderLineItem[],
-    ): Promise<OrderReturn> {
+    ): Promise<OrderResponse> {
         const url = `/customers/${customerId}/orders`
 
         if (lineItems.some((e) => !e.lineItemNumber)) {
@@ -114,7 +114,7 @@ export class PartnerCenter {
         quantity: number,
         billingCycle: 'monthly' | 'annual',
         options?: OrderLineItemOptions,
-    ): Promise<OrderReturn> {
+    ): Promise<OrderResponse> {
         const skus = await this.getSkusByCustomer(customerId, productId)
 
         const skuId = skus[0]?.id

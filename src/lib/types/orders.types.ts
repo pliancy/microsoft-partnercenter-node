@@ -25,7 +25,7 @@ export interface OrderLineItemOptions {
     transactionType?: string
 }
 
-export interface OrderReturn {
+export interface OrderResponse {
     id: string
     alternateId: string
     referenceCustomerId: string
