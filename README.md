@@ -44,6 +44,7 @@ await msPartnerCenter.getAllCustomers()
 ```javascript
 const customerId = '123'
 const billingCycle = 'monthly'
+
 const lineItems = [
   {
     offerId: '1',
@@ -51,6 +52,7 @@ const lineItems = [
     termDuration: 'P1M',
 },
 ]
+
 await msPartnerCenter.createOrder(customerId, billingCycle, lineItems)
 ```
 
