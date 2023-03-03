@@ -48,7 +48,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "run-s -l clean tsc",
+    "build": "run-s -l clean test tsc",
     "build:check": "tsc --noEmit",
     "clean": "rimraf coverage dist tmp",
     "lint": "eslint \"src/**/*.ts\" --fix",
