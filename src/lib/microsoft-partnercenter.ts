@@ -1,11 +1,11 @@
 import { AxiosInstance } from 'axios'
 import { Availability } from './types/availabilities.types'
-import type { IPartnerCenterConfig } from './types/common.types'
-import type { Customer } from './types/customers.types'
-import type { Invoice } from './types/invoices.types'
+import { IPartnerCenterConfig } from './types/common.types'
+import { Customer } from './types/customers.types'
+import { Invoice } from './types/invoices.types'
 import { OrderLineItem, OrderLineItemOptions, OrderResponse } from './types/orders.types'
 import { Sku } from './types/sku.types'
-import type { Subscription } from './types/subscriptions.types'
+import { Subscription } from './types/subscriptions.types'
 import { createHttpAgent } from './utils/create-http-agent'
 
 export class MicrosoftPartnerCenter {
