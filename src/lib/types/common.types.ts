@@ -4,6 +4,13 @@ export interface IPartnerCenterConfig {
     authentication: ClientAuth
     /** timeout threshold in milliseconds */
     timeoutMs?: number
+    conflict?: {
+        /** if true, the library will retry the request after a 409 conflict */
+        retryOnConflict: boolean
+        /** if true, the library will retry the request after a 409 conflict */
+        retryOnConflictDelayMs: number
+        maximumRetries?: number
+    }
 }
 export interface ClientAuth {
     clientId: string

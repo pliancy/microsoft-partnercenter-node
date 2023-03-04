@@ -4,11 +4,11 @@ import { IOAuthResponse, IPartnerCenterConfig } from '../types/common.types'
 
 let accessToken = ''
 let reAuthed = false
+let retry = 0
 
 export function createHttpAgent(config: IPartnerCenterConfig): AxiosInstance {
     const baseURL = 'https://api.partnercenter.microsoft.com/v1/'
-    const agent = axios.create({ baseURL })
-
+    const agent = axios.create({ baseURL, timeout: config.timeoutMs })
     agent.interceptors.request.use(async (req) => {
         if (!accessToken) {
             accessToken = await authenticate(config)
@@ -26,6 +26,22 @@ export function createHttpAgent(config: IPartnerCenterConfig): AxiosInstance {
                 err.config.headers.authorization = `Bearer ${accessToken}`
                 return agent.request(err.config)
             }
+
+            const maxRetries = config.conflict?.maximumRetries ?? 3
+
+            if (
+                err.response?.status === 429 &&
+                config?.conflict?.retryOnConflict &&
+                retry < maxRetries
+            ) {
+                retry++
+                const retryAfter =
+                    err.response.headers['retry-after'] ?? config.conflict.retryOnConflictDelayMs
+                await new Promise((resolve) => setTimeout(resolve, retryAfter))
+                return agent.request(err.config)
+            }
+
+            retry = 0
             reAuthed = false
             throw err
         },
