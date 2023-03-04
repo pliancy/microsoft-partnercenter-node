@@ -7,8 +7,9 @@ export interface IPartnerCenterConfig {
     conflict?: {
         /** if true, the library will retry the request after a 409 conflict */
         retryOnConflict: boolean
-        /** if true, the library will retry the request after a 409 conflict */
-        retryOnConflictDelayMs: number
+        /** The time to delay retry in milliseconds  */
+        retryOnConflictDelayMs?: number
+        /** The maximum number of retries */
         maximumRetries?: number
     }
 }

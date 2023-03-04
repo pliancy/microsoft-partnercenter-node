@@ -30,13 +30,12 @@ export function createHttpAgent(config: IPartnerCenterConfig): AxiosInstance {
             const maxRetries = config.conflict?.maximumRetries ?? 3
 
             if (
-                err.response?.status === 429 &&
+                err.response?.status === 409 &&
                 config?.conflict?.retryOnConflict &&
                 retry < maxRetries
             ) {
                 retry++
-                const retryAfter =
-                    err.response.headers['retry-after'] ?? config.conflict.retryOnConflictDelayMs
+                const retryAfter = config.conflict?.retryOnConflictDelayMs ?? 1000
                 await new Promise((resolve) => setTimeout(resolve, retryAfter))
                 return agent.request(err.config)
             }
