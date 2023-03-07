@@ -78,6 +78,7 @@ export enum Status {
     Active = 'active',
     Deleted = 'deleted',
     Disabled = 'disabled',
+    Suspended = 'suspended',
 }
 
 export enum SuspensionReason {
