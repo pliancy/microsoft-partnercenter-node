@@ -61,7 +61,7 @@ export class MicrosoftPartnerCenter {
         customerId: string,
         subscriptionId: string,
         usersQuantity: number,
-    ): Promise<object> {
+    ): Promise<Subscription> {
         const subscription = await this.getCustomerSubscriptionById(customerId, subscriptionId)
         subscription.quantity = usersQuantity
         const { data } = await this.httpAgent.patch(
