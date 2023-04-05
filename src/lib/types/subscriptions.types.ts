@@ -33,6 +33,21 @@ export interface Subscription {
     entitlementId?: string
     actions?: Action[]
     suspensionReasons?: SuspensionReason[]
+    refundOption?: SubscriptionRefundableOption[]
+    refundableQuantity?: {
+        totalQuantity: number
+        details: SubscriptionRefundableQuantityDetail[]
+    }
+}
+
+export interface SubscriptionRefundableQuantityDetail {
+    quantity: number
+    allowedUntilDateTime: Date
+}
+
+export interface SubscriptionRefundableOption {
+    type: string
+    expiresAt: Date
 }
 
 export enum Action {
@@ -79,6 +94,7 @@ export enum Status {
     Deleted = 'deleted',
     Disabled = 'disabled',
     Suspended = 'suspended',
+    Expired = 'expired',
 }
 
 export enum SuspensionReason {
