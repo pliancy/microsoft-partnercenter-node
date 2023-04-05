@@ -36,12 +36,12 @@ export interface Subscription {
     refundOption?: SubscriptionRefundableOption[]
     refundableQuantity?: {
         totalQuantity: number
-        details:       SubscriptionRefundableQuantityDetail[]
+        details: SubscriptionRefundableQuantityDetail[]
     }
 }
 
 export interface SubscriptionRefundableQuantityDetail {
-    quantity:             number
+    quantity: number
     allowedUntilDateTime: Date
 }
 

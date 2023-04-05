@@ -77,7 +77,10 @@ export class MicrosoftPartnerCenter {
         subscription: Partial<Subscription>,
     ): Promise<Subscription> {
         const url = `/customers/${customerId}/subscriptions/${subscriptionId}`
-        const currentSubscription = await this.getCustomerSubscriptionById(customerId, subscriptionId)
+        const currentSubscription = await this.getCustomerSubscriptionById(
+            customerId,
+            subscriptionId,
+        )
         const updatedSubscription = { ...currentSubscription, ...subscription }
         const { data } = await this.httpAgent.patch(url, updatedSubscription)
         return data
