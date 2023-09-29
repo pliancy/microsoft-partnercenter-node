@@ -11,7 +11,7 @@
   },
   "description": "",
   "devDependencies": {
-    "@pliancy/eslint-config-ts": "0.1.0",
+    "@pliancy/eslint-config-ts": "1.1.0",
     "@semantic-release/git": "10.0.1",
     "@semantic-release/github": "8.0.7",
     "@semantic-release/npm": "9.0.2",
