@@ -1,10 +1,6 @@
 import { BillingPlan, Link } from './common.types'
 import { Sku } from './sku.types'
 
-interface Attributes {
-    objectType: string
-}
-
 export interface Availability {
     id: string
     productId: string

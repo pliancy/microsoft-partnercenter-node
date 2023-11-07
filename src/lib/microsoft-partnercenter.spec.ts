@@ -1,6 +1,7 @@
 import { MicrosoftPartnerCenter } from './microsoft-partnercenter'
 import mockAxios from 'jest-mock-axios'
 import { OrderLineItem } from './types/orders.types'
+import { ApplicationConsent } from './types'
 
 describe('Microsoft Partner Center', () => {
     let partnerCenter: MicrosoftPartnerCenter
@@ -141,5 +142,28 @@ describe('Microsoft Partner Center', () => {
             })),
             billingCycle: 'monthly',
         })
+    })
+
+    it(' should create an application consent', async () => {
+        const consent: ApplicationConsent = {
+            applicationId: '1',
+            applicationGrants: [
+                {
+                    scope: '1',
+                    enterpriseApplicationId: '1',
+                },
+            ],
+        }
+        jest.spyOn(mockAxios, 'post').mockResolvedValue({ data: consent })
+        const result = await partnerCenter.createApplicationConsent('1', consent)
+        expect(result).toEqual(consent)
+        expect(mockAxios.post).toHaveBeenCalledWith('/customers/1/applicationconsents', consent)
+    })
+
+    it('should remove an application consent', async () => {
+        jest.spyOn(mockAxios, 'delete').mockResolvedValue({ data: {} })
+        const result = await partnerCenter.removeApplicationConsent('1', '1')
+        expect(result).toBeUndefined()
+        expect(mockAxios.delete).toHaveBeenCalledWith('/customers/1/applicationconsents/1')
     })
 })
