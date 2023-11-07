@@ -1,4 +1,5 @@
 import { AxiosInstance } from 'axios'
+import { ApplicationConsent } from './types'
 import { Availability } from './types/availabilities.types'
 import { IPartnerCenterConfig } from './types/common.types'
 import { Customer } from './types/customers.types'
@@ -151,5 +152,32 @@ export class MicrosoftPartnerCenter {
         const url = `/customers/${customerId}/products/${productId}/skus/${sku}/availabilities`
         const { data } = await this.httpAgent.get(url)
         return data.items
+    }
+
+    /**
+     *  Creates an application consent
+     * https://learn.microsoft.com/en-us/partner-center/developer/control-panel-vendor-apis#acquire-consent
+     * @param customerId
+     * @param applicationConsent
+     * @returns
+     */
+    async createApplicationConsent(
+        customerId: string,
+        applicationConsent: ApplicationConsent,
+    ): Promise<Subscription> {
+        const url = `/customers/${customerId}/applicationconsents`
+        const { data } = await this.httpAgent.post(url, applicationConsent)
+        return data
+    }
+
+    /**
+     *  Removes an application consent
+     * https://learn.microsoft.com/en-us/partner-center/developer/control-panel-vendor-apis#remove-consent
+     * @param customerId
+     * @param applicationConsentId
+     */
+    async removeApplicationConsent(customerId: string, applicationConsentId: string) {
+        const url = `/customers/${customerId}/applicationconsents/${applicationConsentId}`
+        await this.httpAgent.delete(url)
     }
 }
