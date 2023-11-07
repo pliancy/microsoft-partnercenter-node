@@ -157,9 +157,9 @@ export class MicrosoftPartnerCenter {
     /**
      *  Creates an application consent
      * https://learn.microsoft.com/en-us/partner-center/developer/control-panel-vendor-apis#acquire-consent
-     * @param customerId 
-     * @param applicationConsent 
-     * @returns 
+     * @param customerId
+     * @param applicationConsent
+     * @returns
      */
     async createApplicationConsent(
         customerId: string,
@@ -173,8 +173,8 @@ export class MicrosoftPartnerCenter {
     /**
      *  Removes an application consent
      * https://learn.microsoft.com/en-us/partner-center/developer/control-panel-vendor-apis#remove-consent
-     * @param customerId 
-     * @param applicationConsentId 
+     * @param customerId
+     * @param applicationConsentId
      */
     async removeApplicationConsent(customerId: string, applicationConsentId: string) {
         const url = `/customers/${customerId}/applicationconsents/${applicationConsentId}`
