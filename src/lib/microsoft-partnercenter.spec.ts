@@ -144,7 +144,7 @@ describe('Microsoft Partner Center', () => {
         })
     })
 
-    it(' should create an application consent', async () => {
+    it('should create an application consent', async () => {
         const consent: ApplicationConsent = {
             applicationId: '1',
             applicationGrants: [
