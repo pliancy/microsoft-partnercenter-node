@@ -7,12 +7,19 @@ import { Invoice } from './types/invoices.types'
 import { OrderLineItem, OrderLineItemOptions, OrderResponse } from './types/orders.types'
 import { Sku } from './types/sku.types'
 import { Subscription } from './types/subscriptions.types'
-import { createHttpAgent } from './utils/create-http-agent'
+import { TokenManager, initializeHttpAndTokenManager } from './utils/http-token-manager'
 
 export class MicrosoftPartnerCenter {
     private readonly httpAgent: AxiosInstance
+    private readonly tokenManager: TokenManager
     constructor(config: IPartnerCenterConfig) {
-        this.httpAgent = createHttpAgent(config)
+        const { agent, tokenManager } = initializeHttpAndTokenManager(config)
+        this.httpAgent = agent
+        this.tokenManager = tokenManager
+    }
+
+    async getRefreshToken() {
+        return this.tokenManager.getInitializedRefreshToken()
     }
 
     async getAllCustomers(): Promise<Customer[]> {

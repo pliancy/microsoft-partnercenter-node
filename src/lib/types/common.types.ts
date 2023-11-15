@@ -12,10 +12,15 @@ export interface IPartnerCenterConfig {
         /** The maximum number of retries */
         maximumRetries?: number
     }
+    /**
+     * Callback function to update the refresh token in your database
+     */
+    onUpdateRefreshToken?: (newRefreshToken: string) => void
 }
 export interface ClientAuth {
     clientId: string
     clientSecret: string
+    refreshToken?: string
 }
 
 export interface IOAuthResponse {
@@ -26,6 +31,7 @@ export interface IOAuthResponse {
     not_before: string
     resource: string
     access_token: string
+    refresh_token?: string
 }
 
 export interface LinksBase {
