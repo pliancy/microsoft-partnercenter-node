@@ -6,7 +6,7 @@
     }
   },
   "dependencies": {
-    "axios": "1.6.0",
+    "axios": "1.6.2",
     "tslib": "2.6.2"
   },
   "description": "",
@@ -14,8 +14,8 @@
     "@digitalroute/cz-conventional-changelog-for-jira": "8.0.1",
     "@pliancy/eslint-config-ts": "1.1.0",
     "@pliancy/semantic-release-config-npm": "2.2.0",
-    "@types/jest": "29.5.7",
-    "@types/node": "20.8.10",
+    "@types/jest": "29.5.8",
+    "@types/node": "20.9.0",
     "commitizen": "4.3.0",
     "cpy-cli": "5.0.0",
     "husky": "8.0.3",

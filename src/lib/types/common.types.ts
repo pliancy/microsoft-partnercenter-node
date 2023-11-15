@@ -16,6 +16,7 @@ export interface IPartnerCenterConfig {
 export interface ClientAuth {
     clientId: string
     clientSecret: string
+    refreshToken?: string
 }
 
 export interface IOAuthResponse {
@@ -26,6 +27,7 @@ export interface IOAuthResponse {
     not_before: string
     resource: string
     access_token: string
+    refresh_token?: string
 }
 
 export interface LinksBase {

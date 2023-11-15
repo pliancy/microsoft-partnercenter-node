@@ -1,4 +1,4 @@
-import { createHttpAgent } from './create-http-agent'
+import { initializeHttpAndTokenManager } from './http-token-manager'
 import mockAxios from 'jest-mock-axios'
 import { AxiosInstance } from 'axios'
 
@@ -14,7 +14,8 @@ describe('HttpAgent', () => {
     }
 
     beforeEach(() => {
-        instance = createHttpAgent(conf)
+        const { agent } = initializeHttpAndTokenManager(conf)
+        instance = agent
         jest.spyOn(mockAxios, 'create')
     })
 
