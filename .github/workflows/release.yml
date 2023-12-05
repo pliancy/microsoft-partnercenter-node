@@ -9,7 +9,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    permissions: 
+    permissions:
       contents: write
     steps:
       - name: Checkout
@@ -58,3 +58,6 @@ jobs:
 
           # Optional. Skip internal call to `git fetch`
           skip_fetch: true
+
+          # PliBot is allowed to force-push, bypassing the branch protections
+          push_options: --force
