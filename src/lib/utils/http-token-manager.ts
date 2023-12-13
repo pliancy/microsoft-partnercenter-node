@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import qs from 'querystring'
+import { decode, JwtPayload } from 'jsonwebtoken'
 import { IOAuthResponse, IPartnerCenterConfig } from '../types/common.types'
 
 export class TokenManager {
@@ -23,7 +24,7 @@ export class TokenManager {
     }
 
     async getAccessToken() {
-        if (!this.accessToken) {
+        if (!this.accessToken || this.isTokenExpired()) {
             await this.authenticate()
         }
         return this.accessToken
@@ -56,6 +57,7 @@ export class TokenManager {
 
     private async authenticate() {
         let authData = this.prepareAuthData()
+
         try {
             const res = await axios.post(
                 `https://login.microsoftonline.com/${this.config.partnerDomain}/oauth2/token`,
@@ -98,8 +100,22 @@ export class TokenManager {
     }
 
     private isTokenExpired() {
-        // TODO: Implement token expiration check
-        return false
+        if (!this.accessToken) {
+            return true // If there's no token, it's considered expired
+        }
+
+        try {
+            const decodedToken = (decode(this.accessToken) as JwtPayload) || null
+            if (!decodedToken || !decodedToken.exp) {
+                return true
+            }
+
+            const currentUnixTime = Math.floor(Date.now() / 1000)
+            // Check if the token has expired
+            return decodedToken.exp < currentUnixTime
+        } catch (error) {
+            return true
+        }
     }
 }
 
