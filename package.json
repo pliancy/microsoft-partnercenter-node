@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "axios": "1.6.2",
+    "jsonwebtoken": "9.0.2",
     "tslib": "2.6.2"
   },
   "description": "",
@@ -15,6 +16,7 @@
     "@pliancy/eslint-config-ts": "1.1.0",
     "@pliancy/semantic-release-config-npm": "2.2.0",
     "@types/jest": "29.5.8",
+    "@types/jsonwebtoken": "9.0.5",
     "@types/node": "20.9.0",
     "commitizen": "4.3.0",
     "cpy-cli": "5.0.0",
