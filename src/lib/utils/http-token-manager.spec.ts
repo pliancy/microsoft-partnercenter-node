@@ -50,7 +50,6 @@ describe('HttpAgent', () => {
     })
 
     it('should authenticate and set a new token', async () => {
-        // Mock axios.post to simulate token endpoint response
         jest.spyOn(axios, 'post').mockResolvedValue({
             data: {
                 access_token: 'newAccessToken',
@@ -64,10 +63,8 @@ describe('HttpAgent', () => {
     })
 
     it('should re-auth when token is expired', async () => {
-        // Mock axios.post to simulate token endpoint response
         tokenManager.accessToken = 'invalidToken'
         ;(decode as jest.Mock).mockImplementation((token) => {
-            // Your mock implementation, for example:
             if (token === 'validToken') {
                 return { userId: '123', exp: Date.now() / 1000 + 3600 }
             }
