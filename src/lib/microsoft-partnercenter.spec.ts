@@ -166,4 +166,12 @@ describe('Microsoft Partner Center', () => {
         expect(result).toBeUndefined()
         expect(mockAxios.delete).toHaveBeenCalledWith('/customers/1/applicationconsents/1')
     })
+
+    it('should get license usage by customer', async () => {
+        const licenses = [{ id: '1' }, { id: '2' }]
+        jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: { items: licenses } })
+        const result = await partnerCenter.getCustomerLicenseUsage('1')
+        expect(result).toEqual(licenses)
+        expect(mockAxios.get).toHaveBeenCalledWith('/customers/1/subscribedskus')
+    })
 })

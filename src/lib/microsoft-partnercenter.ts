@@ -8,6 +8,7 @@ import { OrderLineItem, OrderLineItemOptions, OrderResponse } from './types/orde
 import { Sku } from './types/sku.types'
 import { Subscription } from './types/subscriptions.types'
 import { TokenManager, initializeHttpAndTokenManager } from './utils/http-token-manager'
+import { LicenseUsage } from './types/licenses.types'
 
 export class MicrosoftPartnerCenter {
     private readonly httpAgent: AxiosInstance
@@ -186,5 +187,17 @@ export class MicrosoftPartnerCenter {
     async removeApplicationConsent(customerId: string, applicationConsentId: string) {
         const url = `/customers/${customerId}/applicationconsents/${applicationConsentId}`
         await this.httpAgent.delete(url)
+    }
+
+    /**
+     *  Gets License usage and availability for a customer
+     * https://learn.microsoft.com/en-us/partner-center/developer/get-a-list-of-available-licenses
+     * @param customerId
+     * @returns
+     */
+    async getCustomerLicenseUsage(customerId: string): Promise<LicenseUsage[]> {
+        const url = `/customers/${customerId}/subscribedskus`
+        const { data } = await this.httpAgent.get(url)
+        return data.items
     }
 }
