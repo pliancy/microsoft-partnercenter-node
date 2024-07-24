@@ -29,3 +29,29 @@ export type Links = LinksBase
 export enum RelationshipToPartner {
     Reseller = 'reseller',
 }
+
+export interface CreateCustomer {
+    enableGDAPByDefault: boolean
+    CompanyProfile: {
+        Domain: string
+    }
+    BillingProfile: BillingProfile
+}
+
+export interface BillingProfile {
+    Culture: string
+    Email: string
+    Language: string
+    CompanyName: string
+    DefaultAddress: DefaultAddress
+}
+
+export interface DefaultAddress {
+    FirstName: string
+    LastName: string
+    AddressLine1: string
+    City: string
+    State: string
+    PostalCode: string
+    Country: string
+}

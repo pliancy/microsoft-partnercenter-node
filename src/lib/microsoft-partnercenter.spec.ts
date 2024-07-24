@@ -174,4 +174,37 @@ describe('Microsoft Partner Center', () => {
         expect(result).toEqual(licenses)
         expect(mockAxios.get).toHaveBeenCalledWith('/customers/1/subscribedskus')
     })
+
+    it('should create a customer', async () => {
+        const customer = { id: '1' }
+        jest.spyOn(mockAxios, 'post').mockResolvedValue({ data: customer })
+        const result = await partnerCenter.createCustomer({ id: '1' } as never)
+        expect(result).toEqual(customer)
+        expect(mockAxios.post).toHaveBeenCalledWith('/customers', { id: '1' })
+    })
+
+    it('should create a user', async () => {
+        const user = { id: '1' }
+        jest.spyOn(mockAxios, 'post').mockResolvedValue({ data: user })
+        const result = await partnerCenter.createUser('1', { id: '1' } as never)
+        expect(result).toEqual(user)
+        expect(mockAxios.post).toHaveBeenCalledWith('/customers/1/users', {
+            id: '1',
+        })
+    })
+
+    it('should set user role', async () => {
+        jest.spyOn(mockAxios, 'post').mockResolvedValue({ data: {} })
+        const result = await partnerCenter.setUserRole('1', '1', {
+            Id: '1',
+            DisplayName: 'test',
+            UserPrincipalName: 'test',
+        })
+        expect(result).toEqual({})
+        expect(mockAxios.post).toHaveBeenCalledWith('/customers/1/directoryroles/1/usermembers', {
+            Id: '1',
+            DisplayName: 'test',
+            UserPrincipalName: 'test',
+        })
+    })
 })

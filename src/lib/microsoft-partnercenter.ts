@@ -1,14 +1,15 @@
 import { AxiosInstance } from 'axios'
-import { ApplicationConsent } from './types'
+import { ApplicationConsent, CreateUser, SetUserRole, SetUserRoleResponse, User } from './types'
 import { Availability } from './types/availabilities.types'
 import { IPartnerCenterConfig } from './types/common.types'
-import { Customer } from './types/customers.types'
+import { CreateCustomer, Customer } from './types/customers.types'
 import { Invoice } from './types/invoices.types'
 import { OrderLineItem, OrderLineItemOptions, OrderResponse } from './types/orders.types'
 import { Sku } from './types/sku.types'
 import { Subscription } from './types/subscriptions.types'
 import { TokenManager, initializeHttpAndTokenManager } from './utils/http-token-manager'
 import { LicenseUsage } from './types/licenses.types'
+import { CreateGDAPRelationship, GDAPRelationship } from './types/gdap.types'
 
 export class MicrosoftPartnerCenter {
     private readonly httpAgent: AxiosInstance
@@ -64,6 +65,36 @@ export class MicrosoftPartnerCenter {
         const subs = await this.getCustomerSubscriptions(customerId)
         const sub = subs.find((e: any) => e.offerId === offerId)
         return sub
+    }
+
+    async createCustomer(data: CreateCustomer): Promise<Customer> {
+        const { data: customer } = await this.httpAgent.post('/customers', data)
+        return customer
+    }
+
+    async createUser(customerId: string, data: CreateUser): Promise<User> {
+        const { data: user } = await this.httpAgent.post(`/customers/${customerId}/users`, data)
+        return user
+    }
+
+    async setUserRole(
+        customerId: string,
+        roleId: string,
+        data: SetUserRole,
+    ): Promise<SetUserRoleResponse> {
+        const { data: userRole } = await this.httpAgent.post(
+            `/customers/${customerId}/directoryroles/${roleId}/usermembers`,
+            data,
+        )
+        return userRole
+    }
+
+    async createGDAPRelationship(data: CreateGDAPRelationship): Promise<GDAPRelationship> {
+        const { data: gdapRelationship } = await this.httpAgent.post(
+            '/tenantRelationships/delegatedAdminRelationships',
+            data,
+        )
+        return gdapRelationship
     }
 
     async updateCustomerSubscriptionUsers(
