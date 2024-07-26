@@ -20,7 +20,7 @@ export interface User {
     lastName: string
     displayName: string
     immutableId: string
-    passwordProfile: PasswordProfile
+    passwordProfile?: PasswordProfile
     lastDirectorySyncTime: null
     userDomainType: string
     state: string
