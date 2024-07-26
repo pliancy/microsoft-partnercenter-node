@@ -186,7 +186,9 @@ describe('Microsoft Partner Center', () => {
     it('should create a user', async () => {
         const user = { id: '1' }
         jest.spyOn(mockAxios, 'post').mockResolvedValue({ data: user })
-        const result = await partnerCenter.createUser('1', { id: '1' } as never)
+        const result = await partnerCenter.createCustomerUser('1', {
+            id: '1',
+        } as never)
         expect(result).toEqual(user)
         expect(mockAxios.post).toHaveBeenCalledWith('/customers/1/users', {
             id: '1',
@@ -195,7 +197,7 @@ describe('Microsoft Partner Center', () => {
 
     it('should set user role', async () => {
         jest.spyOn(mockAxios, 'post').mockResolvedValue({ data: {} })
-        const result = await partnerCenter.setUserRole('1', '1', {
+        const result = await partnerCenter.setCustomerUserRole('1', '1', {
             Id: '1',
             DisplayName: 'test',
             UserPrincipalName: 'test',
@@ -206,5 +208,28 @@ describe('Microsoft Partner Center', () => {
             DisplayName: 'test',
             UserPrincipalName: 'test',
         })
+    })
+
+    it('should get user roles', async () => {
+        const roles = [{ id: '1' }, { id: '2' }]
+        jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: { items: roles } })
+        const result = await partnerCenter.getCustomerUserRoles('roleId', 'userId')
+        expect(result).toEqual(roles)
+        expect(mockAxios.get).toHaveBeenCalledWith('/customers/roleId/users/userId/directoryroles')
+    })
+
+    it('should get all users', async () => {
+        const users = [{ id: '1' }, { id: '2' }]
+        jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: { items: users } })
+        const result = await partnerCenter.getAllCustomerUsers('1')
+        expect(result).toEqual(users)
+        expect(mockAxios.get).toHaveBeenCalledWith('/customers/1/users')
+    })
+
+    it('should get user by id', async () => {
+        jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: { id: '1' } })
+        const result = await partnerCenter.getCustomerUserById('1', '1')
+        expect(result).toEqual({ id: '1' })
+        expect(mockAxios.get).toHaveBeenCalledWith('/customers/1/users/1')
     })
 })

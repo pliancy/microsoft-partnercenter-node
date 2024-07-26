@@ -8,8 +8,14 @@ export class TokenManager {
     private _refreshToken = ''
     private reAuthed = false
     private retry = 0
+    private scope: string
 
-    constructor(private config: IPartnerCenterConfig) {}
+    constructor(
+        private config: IPartnerCenterConfig,
+        scope: string,
+    ) {
+        this.scope = scope
+    }
 
     async getInitializedRefreshToken() {
         if (!this.config.authentication.refreshToken) {
@@ -88,17 +94,16 @@ export class TokenManager {
                 refresh_token: this.config.authentication.refreshToken,
                 client_id: this.config.authentication.clientId,
                 client_secret: this.config.authentication.clientSecret,
-                scope: 'https://api.partnercenter.microsoft.com/.default',
+                scope: this.scope,
             })
         }
         return qs.stringify({
             grant_type: 'client_credentials',
-            resource: 'https://graph.windows.net',
             client_id: this.config.authentication.clientId,
             client_secret: this.config.authentication.clientSecret,
+            scope: this.scope,
         })
     }
-
     private isTokenExpired() {
         if (!this.accessToken) {
             return true // If there's no token, it's considered expired
@@ -119,9 +124,12 @@ export class TokenManager {
     }
 }
 
-export function initializeHttpAndTokenManager(config: IPartnerCenterConfig) {
-    const baseURL = 'https://api.partnercenter.microsoft.com/v1/'
-    const tokenManager = new TokenManager(config)
+export function initializeHttpAndTokenManager(
+    config: IPartnerCenterConfig,
+    baseURL: string,
+    scope: string,
+) {
+    const tokenManager = new TokenManager(config, scope)
     const agent = axios.create({ baseURL, timeout: config.timeoutMs })
 
     agent.interceptors.request.use(async (req) => {

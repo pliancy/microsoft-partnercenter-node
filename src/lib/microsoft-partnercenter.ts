@@ -1,5 +1,11 @@
-import { AxiosInstance } from 'axios'
-import { ApplicationConsent, CreateUser, SetUserRole, SetUserRoleResponse, User } from './types'
+import {
+    ApplicationConsent,
+    CreateUser,
+    SetUserRole,
+    SetUserRoleResponse,
+    User,
+    UserRole,
+} from './types'
 import { Availability } from './types/availabilities.types'
 import { IPartnerCenterConfig } from './types/common.types'
 import { CreateCustomer, Customer } from './types/customers.types'
@@ -7,21 +13,16 @@ import { Invoice } from './types/invoices.types'
 import { OrderLineItem, OrderLineItemOptions, OrderResponse } from './types/orders.types'
 import { Sku } from './types/sku.types'
 import { Subscription } from './types/subscriptions.types'
-import { TokenManager, initializeHttpAndTokenManager } from './utils/http-token-manager'
 import { LicenseUsage } from './types/licenses.types'
-import { CreateGDAPRelationship, GDAPRelationship } from './types/gdap.types'
+import { MicrosoftApiBase } from './microsoft-api-base'
 
-export class MicrosoftPartnerCenter {
-    private readonly httpAgent: AxiosInstance
-    private readonly tokenManager: TokenManager
+export class MicrosoftPartnerCenter extends MicrosoftApiBase {
     constructor(config: IPartnerCenterConfig) {
-        const { agent, tokenManager } = initializeHttpAndTokenManager(config)
-        this.httpAgent = agent
-        this.tokenManager = tokenManager
-    }
-
-    async getRefreshToken() {
-        return this.tokenManager.getInitializedRefreshToken()
+        super(
+            config,
+            'https://api.partnercenter.microsoft.com/v1/',
+            'https://api.partnercenter.microsoft.com/.default',
+        )
     }
 
     async getAllCustomers(): Promise<Customer[]> {
@@ -72,12 +73,29 @@ export class MicrosoftPartnerCenter {
         return customer
     }
 
-    async createUser(customerId: string, data: CreateUser): Promise<User> {
+    async createCustomerUser(customerId: string, data: CreateUser): Promise<User> {
         const { data: user } = await this.httpAgent.post(`/customers/${customerId}/users`, data)
         return user
     }
 
-    async setUserRole(
+    async getAllCustomerUsers(customerId: string): Promise<User[]> {
+        const { data } = await this.httpAgent.get(`/customers/${customerId}/users`)
+        return data.items
+    }
+
+    async getCustomerUserById(customerId: string, userId: string): Promise<User> {
+        const { data } = await this.httpAgent.get(`/customers/${customerId}/users/${userId}`)
+        return data
+    }
+
+    async getCustomerUserRoles(customerId: string, userId: string): Promise<UserRole[]> {
+        const { data } = await this.httpAgent.get(
+            `/customers/${customerId}/users/${userId}/directoryroles`,
+        )
+        return data.items
+    }
+
+    async setCustomerUserRole(
         customerId: string,
         roleId: string,
         data: SetUserRole,
@@ -87,14 +105,6 @@ export class MicrosoftPartnerCenter {
             data,
         )
         return userRole
-    }
-
-    async createGDAPRelationship(data: CreateGDAPRelationship): Promise<GDAPRelationship> {
-        const { data: gdapRelationship } = await this.httpAgent.post(
-            '/tenantRelationships/delegatedAdminRelationships',
-            data,
-        )
-        return gdapRelationship
     }
 
     async updateCustomerSubscriptionUsers(

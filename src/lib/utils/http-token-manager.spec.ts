@@ -39,7 +39,11 @@ describe('HttpAgent', () => {
 
     beforeEach(() => {
         jest.resetAllMocks()
-        const { agent, tokenManager: _tokenManager } = initializeHttpAndTokenManager(conf)
+        const { agent, tokenManager: _tokenManager } = initializeHttpAndTokenManager(
+            conf,
+            'baseUrl',
+            'scope',
+        )
         instance = agent
         tokenManager = _tokenManager
         jest.spyOn(mockAxios, 'create')
