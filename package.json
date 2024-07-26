@@ -13,7 +13,7 @@
   "description": "",
   "devDependencies": {
     "@digitalroute/cz-conventional-changelog-for-jira": "8.0.1",
-    "@pliancy/eslint-config-ts": "1.1.0",
+    "@pliancy/eslint-config-ts": "1.1.1",
     "@pliancy/semantic-release-config-npm": "2.2.0",
     "@types/jest": "29.5.12",
     "@types/jsonwebtoken": "9.0.6",
