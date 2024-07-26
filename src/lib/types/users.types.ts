@@ -51,3 +51,11 @@ export interface SetUserRoleResponse {
         objectType: 'UserMember'
     }
 }
+
+export interface UserRole {
+    id: string
+    name: string
+    attributes: {
+        objectType: 'DirectoryRole'
+    }
+}
