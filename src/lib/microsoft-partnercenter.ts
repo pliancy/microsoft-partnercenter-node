@@ -88,11 +88,40 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         return data
     }
 
+    async getCustomerUserByPrincipalName(
+        customerId: string,
+        principalName: string,
+    ): Promise<User | undefined> {
+        const users = await this.getAllCustomerUsers(customerId)
+        return users.find((e) => e.userPrincipalName === principalName)
+    }
+
     async getCustomerUserRoles(customerId: string, userId: string): Promise<UserRole[]> {
         const { data } = await this.httpAgent.get(
             `/customers/${customerId}/users/${userId}/directoryroles`,
         )
         return data.items
+    }
+
+    async setCustomerUserPassword(
+        customerId: string,
+        userId: string,
+        password: string,
+        forceChangePassword: boolean,
+    ): Promise<User> {
+        const { data } = await this.httpAgent.patch(
+            `/customers/${customerId}/users/${userId}/resetpassword`,
+            {
+                passwordProfile: {
+                    password,
+                    forceChangePassword,
+                },
+                attributes: {
+                    objectType: 'CustomerUser',
+                },
+            },
+        )
+        return data
     }
 
     async setCustomerUserRole(
