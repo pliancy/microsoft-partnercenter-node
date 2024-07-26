@@ -19,6 +19,19 @@ export interface GDAPCustomer {
     displayName: string
 }
 
+export type GDAPRelationshipStatus =
+    | 'activating'
+    | 'active'
+    | 'approvalPending'
+    | 'approved'
+    | 'created'
+    | 'expired'
+    | 'expiring'
+    | 'terminated'
+    | 'terminating'
+    | 'terminationRequested'
+    | 'unknownFutureValue'
+
 export interface GDAPRelationship {
     '@odata.type': '#microsoft.graph.delegatedAdminRelationship'
     '@odata.context': 'https://graph.microsoft.com/v1.0/tenantRelationships/$metadata#delegatedAdminRelationships'
@@ -28,7 +41,7 @@ export interface GDAPRelationship {
     duration: string
     customer: GDAPCustomer
     accessDetails: AccessDetails
-    status: string
+    status: GDAPRelationshipStatus
     autoExtendDuration: string
     createdDateTime: Date
     lastModifiedDateTime: Date
@@ -75,4 +88,21 @@ export interface GDAPAccessAssignment {
     accessDetails: {
         unifiedRoles: GDAPUnifiedRole[]
     }
+}
+
+export type GDAPRelationshipRequestAction =
+    | 'lockForApproval'
+    | 'approve'
+    | 'terminate'
+    | 'unknownFutureValue'
+    | 'reject'
+
+export interface GDAPRelationshipRequest {
+    '@odata.type': '#microsoft.graph.delegatedAdminRelationshipRequest'
+    '@odata.context': 'https://graph.microsoft.com/v1.0/tenantRelationships/$metadata#requests'
+    id: string
+    action: GDAPRelationshipRequestAction
+    status: 'created' | 'pending' | 'succeeded' | 'failed' | 'unknownFutureValue'
+    createdDateTime: Date
+    lastModifiedDateTime: Date
 }

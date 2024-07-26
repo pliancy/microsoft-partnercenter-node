@@ -5,6 +5,8 @@ import {
     CreateGDAPRelationship,
     GDAPAccessAssignment,
     GDAPRelationship,
+    GDAPRelationshipRequest,
+    GDAPRelationshipRequestAction,
     UpdateGDAPAccessAssignment,
 } from './types/gdap.types'
 
@@ -103,6 +105,58 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
         await this.httpAgent.delete(
             `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}`,
         )
+    }
+
+    /**
+     *  Create a GDAP relationship request
+     * https://learn.microsoft.com/en-us/graph/api/delegatedadminrelationship-post-requests?view=graph-rest-1.0&tabs=http
+     * @param gdapRelationshipId
+     * @param data
+     * @returns
+     */
+    async createGDAPRelationshipRequest(
+        gdapRelationshipId: string,
+        action: GDAPRelationshipRequestAction,
+    ): Promise<GDAPRelationshipRequest> {
+        const { data: gdapRelationship } = await this.httpAgent.post(
+            `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}/requests`,
+            {
+                action,
+            },
+        )
+        return gdapRelationship
+    }
+
+    /**
+     *  Get all GDAP relationship requests
+     * https://learn.microsoft.com/en-us/graph/api/delegatedadminrelationship-list-requests?view=graph-rest-1.0&tabs=http
+     * @param gdapRelationshipId
+     * @returns
+     */
+    async getAllGDAPRelationshipRequests(
+        gdapRelationshipId: string,
+    ): Promise<GDAPRelationshipRequest[]> {
+        const { data } = await this.httpAgent.get(
+            `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}/requests`,
+        )
+        return data.value
+    }
+
+    /**
+     *  Get a GDAP relationship request
+     * https://learn.microsoft.com/en-us/graph/api/delegatedadminrelationshiprequest-get?view=graph-rest-1.0&tabs=http
+     * @param gdapRelationshipId
+     * @param gdapRelationshipRequestId
+     * @returns
+     */
+    async getGDAPRelationshipRequest(
+        gdapRelationshipId: string,
+        gdapRelationshipRequestId: string,
+    ): Promise<GDAPRelationshipRequest> {
+        const { data } = await this.httpAgent.get(
+            `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}/requests/${gdapRelationshipRequestId}`,
+        )
+        return data
     }
 
     /**
