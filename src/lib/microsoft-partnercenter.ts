@@ -13,7 +13,12 @@ import { Invoice } from './types/invoices.types'
 import { OrderLineItem, OrderLineItemOptions, OrderResponse } from './types/orders.types'
 import { Sku } from './types/sku.types'
 import { Subscription } from './types/subscriptions.types'
-import { LicenseUsage } from './types/licenses.types'
+import {
+    LicenseUsage,
+    LicenseAssignmentRequest,
+    LicenseAssignmentResponse,
+    UserLicenseAssignment,
+} from './types/licenses.types'
 import { MicrosoftApiBase } from './microsoft-api-base'
 
 export class MicrosoftPartnerCenter extends MicrosoftApiBase {
@@ -136,6 +141,43 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         return userRole
     }
 
+    /**
+     *  Assigns licenses to a user
+     * https://learn.microsoft.com/en-us/partner-center/developer/assign-licenses-to-a-user
+     * @param customerId
+     * @param userId
+     * @param licenses
+     * @returns
+     */
+    async assignLicensesToCustomerUser(
+        customerId: string,
+        userId: string,
+        licenses: LicenseAssignmentRequest,
+    ): Promise<LicenseAssignmentResponse> {
+        const { data } = await this.httpAgent.post(
+            `/customers/${customerId}/users/${userId}/licenseupdates`,
+            licenses,
+        )
+        return data
+    }
+
+    /**
+     * Gets licenses assigned to a user
+     * https://learn.microsoft.com/en-us/partner-center/developer/check-which-licenses-are-assigned-to-a-user
+     * @param customerId
+     * @param userId
+     * @returns
+     */
+    async getCustomerUserLicenseAssignments(
+        customerId: string,
+        userId: string,
+    ): Promise<UserLicenseAssignment[]> {
+        const { data } = await this.httpAgent.get(
+            `/customers/${customerId}/users/${userId}/licenses`,
+        )
+        return data.items
+    }
+
     async updateCustomerSubscriptionUsers(
         customerId: string,
         subscriptionId: string,
@@ -220,6 +262,12 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         const url = `/customers/${customerId}/products/${productId}/skus`
         const { data } = await this.httpAgent.get(url)
         return data.items
+    }
+
+    async getSkuById(customerId: string, productId: string, skuId: string): Promise<Sku> {
+        const url = `/customers/${customerId}/products/${productId}/skus/${skuId}`
+        const { data } = await this.httpAgent.get(url)
+        return data
     }
 
     async getAvailabilitiesByCustomer(
