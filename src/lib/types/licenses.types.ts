@@ -30,3 +30,21 @@ interface ServicePlan {
     capabilityStatus: string
     targetType: string
 }
+
+export interface LicenseAssignmentRequest {
+    licensesToAssign: {
+        excludedPlans: string[] | null
+        skuId: string
+    }[]
+    licensesToRemove: string[] | null
+}
+
+export interface LicenseAssignmentResponse {
+    licensesToAssign: {
+        skuId: string
+    }[]
+    licenseWarnings: string[]
+    attributes: {
+        objectType: 'LicenseUpdate'
+    }
+}
