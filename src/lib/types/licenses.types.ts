@@ -48,3 +48,9 @@ export interface LicenseAssignmentResponse {
         objectType: 'LicenseUpdate'
     }
 }
+
+export interface UserLicenseAssignment {
+    servicePlans: ServicePlan[]
+    productSku: ProductSku
+    attributes: Attributes
+}

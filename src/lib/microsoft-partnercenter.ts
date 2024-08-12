@@ -17,6 +17,7 @@ import {
     LicenseUsage,
     LicenseAssignmentRequest,
     LicenseAssignmentResponse,
+    UserLicenseAssignment,
 } from './types/licenses.types'
 import { MicrosoftApiBase } from './microsoft-api-base'
 
@@ -148,7 +149,7 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
      * @param licenses
      * @returns
      */
-    async assignLicensesToUser(
+    async assignLicensesToCustomerUser(
         customerId: string,
         userId: string,
         licenses: LicenseAssignmentRequest,
@@ -158,6 +159,23 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
             licenses,
         )
         return data
+    }
+
+    /**
+     * Gets licenses assigned to a user
+     * https://learn.microsoft.com/en-us/partner-center/developer/check-which-licenses-are-assigned-to-a-user
+     * @param customerId
+     * @param userId
+     * @returns
+     */
+    async getCustomerUserLicenseAssignments(
+        customerId: string,
+        userId: string,
+    ): Promise<UserLicenseAssignment[]> {
+        const { data } = await this.httpAgent.get(
+            `/customers/${customerId}/users/${userId}/licenses`,
+        )
+        return data.items
     }
 
     async updateCustomerSubscriptionUsers(
