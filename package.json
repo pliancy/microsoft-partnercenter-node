@@ -6,29 +6,29 @@
     }
   },
   "dependencies": {
-    "axios": "1.7.2",
+    "axios": "1.7.3",
     "jsonwebtoken": "9.0.2",
-    "tslib": "2.6.2"
+    "tslib": "2.6.3"
   },
   "description": "",
   "devDependencies": {
     "@digitalroute/cz-conventional-changelog-for-jira": "8.0.1",
-    "@pliancy/eslint-config-ts": "1.1.0",
+    "@pliancy/eslint-config-ts": "1.1.1",
     "@pliancy/semantic-release-config-npm": "2.2.0",
     "@types/jest": "29.5.12",
     "@types/jsonwebtoken": "9.0.6",
-    "@types/node": "20.11.25",
+    "@types/node": "22.2.0",
     "commitizen": "4.3.0",
+    "concurrently": "^8.2.2",
     "cpy-cli": "5.0.0",
-    "husky": "9.0.11",
+    "husky": "9.1.4",
     "jest": "29.7.0",
     "jest-mock-axios": "4.7.3",
-    "npm-run-all2": "5.0.0",
     "open-cli": "8.0.0",
     "pinst": "3.0.0",
-    "rimraf": "5.0.5",
-    "ts-jest": "29.1.2",
-    "typescript": "5.4.2"
+    "rimraf": "6.0.1",
+    "ts-jest": "29.2.4",
+    "typescript": "5.5.4"
   },
   "keywords": [
     "microsoft-partnercenter-node",
@@ -48,14 +48,14 @@
     "dist"
   ],
   "scripts": {
-    "build": "run-s -l clean test tsc",
+    "build": "yarn clean && yarn test && tsc -p tsconfig.build.json",
     "build:check": "tsc --noEmit",
     "clean": "rimraf coverage dist tmp",
     "lint": "eslint \"src/**/*.ts\" --fix",
-    "postinstall": "husky install",
+    "postinstall": "husky",
     "prepublishOnly": "pinst --disable",
     "postpublish": "pinst --enable",
-    "qa": "run-s -l lint test clean build:check",
+    "qa": "concurrently  'yarn lint' 'yarn test' 'yarn build:check'",
     "semantic-release": "semantic-release",
     "test": "jest",
     "tsc": "tsc -p tsconfig.build.json"
