@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: latest
       - name: Install dependencies
         run: yarn
       - name: Build
@@ -44,7 +44,7 @@ jobs:
           commit_message: ${{ github.event.head_commit.message }} [skip ci]
 
           # Avoid running husky here
-          commit_options: '--no-verify'
+          commit_options: "--no-verify"
 
           # Optional glob pattern of files which should be added to the commit
           # Defaults to all (.)
