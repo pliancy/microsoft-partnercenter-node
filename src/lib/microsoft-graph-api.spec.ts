@@ -13,7 +13,7 @@ describe('Microsoft Graph API', () => {
 
     beforeEach(() => {
         graphApi = new MicrosoftGraphApi({
-            partnerDomain: 'test',
+            tenantId: 'test',
             authentication: {
                 clientId: 'test',
                 clientSecret: 'test',
