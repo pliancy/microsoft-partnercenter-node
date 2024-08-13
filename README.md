@@ -111,10 +111,10 @@ const relationships = await msGraphApi.getAllGDAPRelationships()
 const domain = await msGraphApi.createDomain("example.com")
 ```
 
-#### List Domains
+#### Get All Domains
 
 ```javascript
-const domains = await msGraphApi.listDomains()
+const domains = await msGraphApi.getAllDomains()
 ```
 
 ## Authentication
