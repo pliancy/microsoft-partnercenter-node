@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import qs from 'querystring'
 import { decode, JwtPayload } from 'jsonwebtoken'
-import { IOAuthResponse, IPartnerCenterConfig } from '../types/common.types'
+import { GraphApiConfig, IOAuthResponse, IPartnerCenterConfig } from '../types/common.types'
 
 export class TokenManager {
     private accessToken = ''
@@ -11,7 +11,7 @@ export class TokenManager {
     private scope: string
 
     constructor(
-        private config: IPartnerCenterConfig,
+        private config: IPartnerCenterConfig | GraphApiConfig,
         scope: string,
     ) {
         this.scope = scope
@@ -65,8 +65,9 @@ export class TokenManager {
         let authData = this.prepareAuthData()
 
         try {
+            const tenantId = this.getTenantId()
             const res = await axios.post(
-                `https://login.microsoftonline.com/${this.config.partnerDomain}/oauth2/token`,
+                `https://login.microsoftonline.com/${tenantId}/oauth2/token`,
                 authData,
                 {
                     headers: {
@@ -122,10 +123,19 @@ export class TokenManager {
             return true
         }
     }
+
+    private getTenantId(): string {
+        if ('partnerDomain' in this.config) {
+            return this.config.partnerDomain
+        } else if ('tenantId' in this.config) {
+            return this.config.tenantId
+        }
+        throw new Error('Invalid configuration: missing partnerDomain or tenantId')
+    }
 }
 
 export function initializeHttpAndTokenManager(
-    config: IPartnerCenterConfig,
+    config: IPartnerCenterConfig | GraphApiConfig,
     baseURL: string,
     scope: string,
 ) {

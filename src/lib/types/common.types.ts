@@ -13,6 +13,22 @@ export interface IPartnerCenterConfig {
         maximumRetries?: number
     }
 }
+
+export interface GraphApiConfig {
+    /** partner center primary domain for your partner account */
+    tenantId: string
+    authentication: ClientAuth
+    /** timeout threshold in milliseconds */
+    timeoutMs?: number
+    conflict?: {
+        /** if true, the library will retry the request after a 409 conflict */
+        retryOnConflict: boolean
+        /** The time to delay retry in milliseconds  */
+        retryOnConflictDelayMs?: number
+        /** The maximum number of retries */
+        maximumRetries?: number
+    }
+}
 export interface ClientAuth {
     clientId: string
     clientSecret: string
