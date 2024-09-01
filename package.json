@@ -6,7 +6,7 @@
     }
   },
   "dependencies": {
-    "axios": "1.7.3",
+    "axios": "1.7.7",
     "jsonwebtoken": "9.0.2",
     "tslib": "2.6.3"
   },
