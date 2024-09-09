@@ -237,7 +237,9 @@ describe('Microsoft Partner Center', () => {
     it('should get price sheet', async () => {
         // Mock the TokenManager
         const mockTokenManager = {
-            getAccessToken: jest.fn().mockResolvedValue('mock-access-token'),
+            authenticate: jest.fn().mockResolvedValue({
+                access_token: 'mock-access-token',
+            }),
         } as unknown as TokenManager
         ;(partnerCenter as any).tokenManager = mockTokenManager
 
@@ -264,7 +266,7 @@ describe('Microsoft Partner Center', () => {
             },
         )
 
-        expect(mockTokenManager.getAccessToken).toHaveBeenCalledWith(
+        expect(mockTokenManager.authenticate).toHaveBeenCalledWith(
             'https://api.partner.microsoft.com',
         )
     })

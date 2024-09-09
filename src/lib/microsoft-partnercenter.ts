@@ -20,6 +20,7 @@ import {
     UserLicenseAssignment,
 } from './types/licenses.types'
 import { MicrosoftApiBase } from './microsoft-api-base'
+import axios from 'axios'
 
 export class MicrosoftPartnerCenter extends MicrosoftApiBase {
     constructor(config: IPartnerCenterConfig) {
@@ -329,13 +330,14 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
     async getPriceSheet(market = 'US', priceSheetView = 'updatedlicensebased'): Promise<Buffer> {
         // This api call needs a different resource see: https://github.com/microsoft/Partner-Center-PowerShell/issues/405
         const tokenManager = this.tokenManager
-        const accessToken = await tokenManager.getAccessToken('https://api.partner.microsoft.com')
-        const { data } = await this.httpAgent.get(
+        const auth = await tokenManager.authenticate('https://api.partner.microsoft.com')
+        // Use separate axios call, since we don't want the unique access token to be used in the main httpAgent
+        const { data } = await axios.get(
             `https://api.partner.microsoft.com/v1.0/sales/pricesheets(Market='${market}',PricesheetView='${priceSheetView}')/$value`,
             {
                 responseType: 'arraybuffer',
                 headers: {
-                    Authorization: `Bearer ${accessToken}`,
+                    Authorization: `Bearer ${auth.access_token}`,
                     'Accept-Encoding': 'deflate',
                 },
             },

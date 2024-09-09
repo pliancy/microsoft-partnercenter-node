@@ -40,7 +40,14 @@ export class TokenManager {
 
     async getAccessToken(resource?: string) {
         if (!this.accessToken || this.isTokenExpired()) {
-            await this.authenticate(resource)
+            const auth = await this.authenticate(resource)
+
+            this.accessToken = auth.access_token
+
+            if (auth.refresh_token) {
+                this._refreshToken = auth.refresh_token
+                this.config.authentication.refreshToken = auth.refresh_token
+            }
         }
         return this.accessToken
     }
@@ -70,12 +77,12 @@ export class TokenManager {
         throw err
     }
 
-    private async authenticate(resource?: string) {
-        let authData = this.prepareAuthData(resource)
+    async authenticate(resource?: string) {
+        const authData = this.prepareAuthData(resource)
 
         try {
             const tenantId = this.getTenantId()
-            const res = await axios.post(
+            const { data }: { data: IOAuthResponse } = await axios.post(
                 `https://login.microsoftonline.com/${tenantId}/oauth2/token`,
                 authData,
                 {
@@ -85,13 +92,7 @@ export class TokenManager {
                 },
             )
 
-            const body: IOAuthResponse = res.data
-            this.accessToken = body.access_token
-
-            if (body.refresh_token) {
-                this.config.authentication.refreshToken = body.refresh_token
-                this._refreshToken = body.refresh_token
-            }
+            return data
         } catch (error) {
             throw new Error('Failed to authenticate with the Microsoft Partner Center.')
         }
