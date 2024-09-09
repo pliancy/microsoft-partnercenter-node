@@ -241,10 +241,8 @@ describe('Microsoft Partner Center', () => {
         } as unknown as TokenManager
         ;(partnerCenter as any).tokenManager = mockTokenManager
 
-        // Create a mock binary response
         const mockBinaryData = Buffer.from('mock price sheet data')
 
-        // Mock the axios response
         jest.spyOn(mockAxios, 'get').mockResolvedValue({
             data: mockBinaryData,
             headers: { 'content-type': 'application/octet-stream' },
@@ -252,11 +250,9 @@ describe('Microsoft Partner Center', () => {
 
         const result = await partnerCenter.getPriceSheet()
 
-        // Check if the result is a Buffer and contains the correct data
         expect(Buffer.isBuffer(result)).toBe(true)
         expect(result.toString()).toBe('mock price sheet data')
 
-        // Verify that the correct URL and headers were used
         expect(mockAxios.get).toHaveBeenCalledWith(
             "https://api.partner.microsoft.com/v1.0/sales/pricesheets(Market='US',PricesheetView='updatedlicensebased')/$value",
             {
@@ -268,7 +264,6 @@ describe('Microsoft Partner Center', () => {
             },
         )
 
-        // Verify that the token manager was called with the correct resource
         expect(mockTokenManager.getAccessToken).toHaveBeenCalledWith(
             'https://api.partner.microsoft.com',
         )
