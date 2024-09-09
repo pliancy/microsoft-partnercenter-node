@@ -3,6 +3,15 @@ import qs from 'querystring'
 import { decode, JwtPayload } from 'jsonwebtoken'
 import { GraphApiConfig, IOAuthResponse, IPartnerCenterConfig } from '../types/common.types'
 
+type AuthData = {
+    grant_type: string
+    client_id: string
+    client_secret: string
+    scope: string
+    refresh_token?: string
+    resource?: string
+}
+
 export class TokenManager {
     private accessToken = ''
     private _refreshToken = ''
@@ -29,9 +38,9 @@ export class TokenManager {
         return this._refreshToken
     }
 
-    async getAccessToken() {
+    async getAccessToken(resource?: string) {
         if (!this.accessToken || this.isTokenExpired()) {
-            await this.authenticate()
+            await this.authenticate(resource)
         }
         return this.accessToken
     }
@@ -61,8 +70,8 @@ export class TokenManager {
         throw err
     }
 
-    private async authenticate() {
-        let authData = this.prepareAuthData()
+    private async authenticate(resource?: string) {
+        let authData = this.prepareAuthData(resource)
 
         try {
             const tenantId = this.getTenantId()
@@ -88,22 +97,31 @@ export class TokenManager {
         }
     }
 
-    private prepareAuthData() {
-        if (this.config.authentication.refreshToken) {
-            return qs.stringify({
-                grant_type: 'refresh_token',
-                refresh_token: this.config.authentication.refreshToken,
-                client_id: this.config.authentication.clientId,
-                client_secret: this.config.authentication.clientSecret,
-                scope: this.scope,
-            })
-        }
-        return qs.stringify({
-            grant_type: 'client_credentials',
-            client_id: this.config.authentication.clientId,
-            client_secret: this.config.authentication.clientSecret,
+    private prepareAuthData(resource?: string): string {
+        const { refreshToken, clientId, clientSecret } = this.config.authentication
+
+        const baseAuthData = {
+            client_id: clientId,
+            client_secret: clientSecret,
             scope: this.scope,
-        })
+        }
+
+        const authData: AuthData = refreshToken
+            ? {
+                  ...baseAuthData,
+                  grant_type: 'refresh_token',
+                  refresh_token: refreshToken,
+              }
+            : {
+                  ...baseAuthData,
+                  grant_type: 'client_credentials',
+              }
+
+        if (resource) {
+            authData.resource = resource
+        }
+
+        return qs.stringify(authData)
     }
     private isTokenExpired() {
         if (!this.accessToken) {
