@@ -2,6 +2,7 @@ import { MicrosoftPartnerCenter } from './microsoft-partnercenter'
 import mockAxios from 'jest-mock-axios'
 import { OrderLineItem } from './types/orders.types'
 import { ApplicationConsent } from './types'
+import { TokenManager } from './utils/http-token-manager'
 
 describe('Microsoft Partner Center', () => {
     let partnerCenter: MicrosoftPartnerCenter
@@ -231,5 +232,40 @@ describe('Microsoft Partner Center', () => {
         const result = await partnerCenter.getCustomerUserById('1', '1')
         expect(result).toEqual({ id: '1' })
         expect(mockAxios.get).toHaveBeenCalledWith('/customers/1/users/1')
+    })
+
+    it('should get price sheet', async () => {
+        // Mock the TokenManager
+        const mockTokenManager = {
+            getAccessToken: jest.fn().mockResolvedValue('mock-access-token'),
+        } as unknown as TokenManager
+        ;(partnerCenter as any).tokenManager = mockTokenManager
+
+        const mockBinaryData = Buffer.from('mock price sheet data')
+
+        jest.spyOn(mockAxios, 'get').mockResolvedValue({
+            data: mockBinaryData,
+            headers: { 'content-type': 'application/octet-stream' },
+        })
+
+        const result = await partnerCenter.getPriceSheet()
+
+        expect(Buffer.isBuffer(result)).toBe(true)
+        expect(result.toString()).toBe('mock price sheet data')
+
+        expect(mockAxios.get).toHaveBeenCalledWith(
+            "https://api.partner.microsoft.com/v1.0/sales/pricesheets(Market='US',PricesheetView='updatedlicensebased')/$value",
+            {
+                responseType: 'arraybuffer',
+                headers: {
+                    Authorization: 'Bearer mock-access-token',
+                    'Accept-Encoding': 'deflate',
+                },
+            },
+        )
+
+        expect(mockTokenManager.getAccessToken).toHaveBeenCalledWith(
+            'https://api.partner.microsoft.com',
+        )
     })
 })

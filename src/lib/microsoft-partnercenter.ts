@@ -318,4 +318,28 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         const { data } = await this.httpAgent.get(url)
         return data.items
     }
+
+    /**
+     *  Gets price sheet for market, default is US and nce license based
+     * https://learn.microsoft.com/en-us/partner-center/developer/get-a-price-sheet
+     * @param  market - Market code
+     * @param  priceSheetView - Price sheet view
+     * @returns Price sheet as a buffer - Which is either a csv or compressed csv
+     */
+    async getPriceSheet(market = 'US', priceSheetView = 'updatedlicensebased'): Promise<Buffer> {
+        // This api call needs a different resource see: https://github.com/microsoft/Partner-Center-PowerShell/issues/405
+        const tokenManager = this.tokenManager
+        const accessToken = await tokenManager.getAccessToken('https://api.partner.microsoft.com')
+        const { data } = await this.httpAgent.get(
+            `https://api.partner.microsoft.com/v1.0/sales/pricesheets(Market='${market}',PricesheetView='${priceSheetView}')/$value`,
+            {
+                responseType: 'arraybuffer',
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Accept-Encoding': 'deflate',
+                },
+            },
+        )
+        return data
+    }
 }
