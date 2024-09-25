@@ -1,5 +1,4 @@
-import { MicrosoftApiBase } from './microsoft-api-base'
-import { GraphApiConfig } from './types'
+import { AxiosInstance } from 'axios'
 import {
     CreateGDAPAccessAssignment,
     CreateGDAPRelationship,
@@ -8,13 +7,10 @@ import {
     GDAPRelationshipRequest,
     GDAPRelationshipRequestAction,
     UpdateGDAPAccessAssignment,
-} from './types/gdap.types'
-import type { Domain, DomainDnsRecord } from './types/domains.types'
+} from '../../types'
 
-export class MicrosoftGraphApi extends MicrosoftApiBase {
-    constructor(config: GraphApiConfig) {
-        super(config, 'https://graph.microsoft.com/v1.0/', 'https://graph.microsoft.com/.default')
-    }
+export class Gdap {
+    constructor(private readonly http: AxiosInstance) {}
 
     /**
      * Create a GDAP relationship
@@ -23,7 +19,7 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
      * @returns
      */
     async createGDAPRelationship(data: CreateGDAPRelationship): Promise<GDAPRelationship> {
-        const { data: gdapRelationship } = await this.httpAgent.post(
+        const { data: gdapRelationship } = await this.http.post(
             '/tenantRelationships/delegatedAdminRelationships',
             data,
         )
@@ -36,9 +32,7 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
      * @returns
      */
     async getAllGDAPRelationships(): Promise<GDAPRelationship[]> {
-        const { data } = await this.httpAgent.get(
-            '/tenantRelationships/delegatedAdminRelationships',
-        )
+        const { data } = await this.http.get('/tenantRelationships/delegatedAdminRelationships')
         return data.value
     }
 
@@ -49,7 +43,7 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
      * @returns
      */
     async getGDAPRelationship(gdapRelationshipId: string): Promise<GDAPRelationship> {
-        const { data } = await this.httpAgent.get(
+        const { data } = await this.http.get(
             `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}`,
         )
         return data
@@ -62,19 +56,16 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
      * @returns
      */
     async getGDAPRelationshipsByCustomerId(customerId: string): Promise<GDAPRelationship[]> {
-        const { data } = await this.httpAgent.get(
-            '/tenantRelationships/delegatedAdminRelationships',
-            {
-                params: {
-                    $filter: encodeURIComponent(`customer/tenantId eq '${customerId}'`),
-                },
-                paramsSerializer: (params) => {
-                    return Object.entries(params)
-                        .map(([key, value]) => `${key}=${value}`)
-                        .join('&')
-                },
+        const { data } = await this.http.get('/tenantRelationships/delegatedAdminRelationships', {
+            params: {
+                $filter: encodeURIComponent(`customer/tenantId eq '${customerId}'`),
             },
-        )
+            paramsSerializer: (params) => {
+                return Object.entries(params)
+                    .map(([key, value]) => `${key}=${value}`)
+                    .join('&')
+            },
+        })
         return data.value
     }
 
@@ -89,7 +80,7 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
         gdapRelationshipId: string,
         data: Partial<GDAPRelationship>,
     ): Promise<GDAPRelationship> {
-        const { data: gdapRelationship } = await this.httpAgent.patch(
+        const { data: gdapRelationship } = await this.http.patch(
             `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}`,
             data,
         )
@@ -103,7 +94,7 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
      * @returns
      */
     async deleteGDAPRelationship(gdapRelationshipId: string) {
-        await this.httpAgent.delete(
+        await this.http.delete(
             `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}`,
         )
     }
@@ -112,14 +103,14 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
      *  Create a GDAP relationship request
      * https://learn.microsoft.com/en-us/graph/api/delegatedadminrelationship-post-requests?view=graph-rest-1.0&tabs=http
      * @param gdapRelationshipId
-     * @param data
+     * @param action
      * @returns
      */
     async createGDAPRelationshipRequest(
         gdapRelationshipId: string,
         action: GDAPRelationshipRequestAction,
     ): Promise<GDAPRelationshipRequest> {
-        const { data: gdapRelationship } = await this.httpAgent.post(
+        const { data: gdapRelationship } = await this.http.post(
             `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}/requests`,
             {
                 action,
@@ -137,7 +128,7 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
     async getAllGDAPRelationshipRequests(
         gdapRelationshipId: string,
     ): Promise<GDAPRelationshipRequest[]> {
-        const { data } = await this.httpAgent.get(
+        const { data } = await this.http.get(
             `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}/requests`,
         )
         return data.value
@@ -154,7 +145,7 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
         gdapRelationshipId: string,
         gdapRelationshipRequestId: string,
     ): Promise<GDAPRelationshipRequest> {
-        const { data } = await this.httpAgent.get(
+        const { data } = await this.http.get(
             `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}/requests/${gdapRelationshipRequestId}`,
         )
         return data
@@ -163,6 +154,7 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
     /**
      *  Create a GDAP access assignment
      * https://learn.microsoft.com/en-us/graph/api/delegatedadminrelationship-post-accessassignments?view=graph-rest-1.0&tabs=http
+     * @param gdapRelationshipId
      * @param data
      * @returns
      */
@@ -170,7 +162,7 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
         gdapRelationshipId: string,
         data: CreateGDAPAccessAssignment,
     ): Promise<GDAPAccessAssignment> {
-        const { data: gdapAccessAssignment } = await this.httpAgent.post(
+        const { data: gdapAccessAssignment } = await this.http.post(
             `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}/accessAssignments`,
             data,
         )
@@ -184,7 +176,7 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
      * @returns
      */
     async getAllGDAPAccessAssignments(gdapRelationshipId: string): Promise<GDAPAccessAssignment[]> {
-        const { data } = await this.httpAgent.get(
+        const { data } = await this.http.get(
             `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}/accessAssignments`,
         )
         return data.value
@@ -201,7 +193,7 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
         gdapRelationshipId: string,
         gdapAccessAssignmentId: string,
     ): Promise<GDAPAccessAssignment> {
-        const { data } = await this.httpAgent.get(
+        const { data } = await this.http.get(
             `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}/accessAssignments/${gdapAccessAssignmentId}`,
         )
         return data
@@ -220,7 +212,7 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
         gdapAccessAssignmentId: string,
         data: UpdateGDAPAccessAssignment,
     ): Promise<GDAPAccessAssignment> {
-        const { data: gdapAccessAssignment } = await this.httpAgent.patch(
+        const { data: gdapAccessAssignment } = await this.http.patch(
             `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}/accessAssignments/${gdapAccessAssignmentId}`,
             data,
         )
@@ -235,83 +227,8 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
      * @returns
      */
     async deleteGDAPAccessAssignment(gdapRelationshipId: string, gdapAccessAssignmentId: string) {
-        await this.httpAgent.delete(
+        await this.http.delete(
             `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}/accessAssignments/${gdapAccessAssignmentId}`,
         )
-    }
-
-    /**
-     * Create a new domain
-     * https://learn.microsoft.com/en-us/graph/api/domain-post-domains?view=graph-rest-1.0&tabs=http
-     * @param domainName The fully qualified name of the domain
-     * @returns The created Domain object
-     */
-    async createDomain(domainName: string): Promise<Domain> {
-        const { data } = await this.httpAgent.post('/domains', { id: domainName })
-        return data
-    }
-
-    /**
-     * List all domains
-     * https://learn.microsoft.com/en-us/graph/api/domain-list?view=graph-rest-1.0&tabs=http
-     * @returns An array of Domain objects
-     */
-    async getAllDomains(): Promise<Domain[]> {
-        const { data } = await this.httpAgent.get('/domains')
-        return data.value
-    }
-
-    /**
-     * Get a specific domain
-     * https://learn.microsoft.com/en-us/graph/api/domain-get?view=graph-rest-1.0&tabs=http
-     * @param domainId The domain ID (which is the fully qualified domain name)
-     * @returns The Domain object
-     */
-    async getDomain(domainId: string): Promise<Domain> {
-        const { data } = await this.httpAgent.get(`/domains/${domainId}`)
-        return data
-    }
-
-    /**
-     * Update a domain
-     * https://learn.microsoft.com/en-us/graph/api/domain-update?view=graph-rest-1.0&tabs=http
-     * @param domainId The domain ID (which is the fully qualified domain name)
-     * @param updateData The data to update on the domain
-     * @returns The updated Domain object
-     */
-    async updateDomain(domainId: string, updateData: Partial<Domain>): Promise<Domain> {
-        const { data } = await this.httpAgent.patch(`/domains/${domainId}`, updateData)
-        return data
-    }
-
-    /**
-     * Delete a domain
-     * https://learn.microsoft.com/en-us/graph/api/domain-delete?view=graph-rest-1.0&tabs=http
-     * @param domainId The domain ID (which is the fully qualified domain name)
-     */
-    async deleteDomain(domainId: string): Promise<void> {
-        await this.httpAgent.delete(`/domains/${domainId}`)
-    }
-
-    /**
-     * Verify a domain
-     * https://learn.microsoft.com/en-us/graph/api/domain-verify?view=graph-rest-1.0&tabs=http
-     * @param domainId The domain ID (which is the fully qualified domain name)
-     * @returns The verified Domain object
-     */
-    async verifyDomain(domainId: string): Promise<Domain> {
-        const { data } = await this.httpAgent.post(`/domains/${domainId}/verify`)
-        return data
-    }
-
-    /**
-     * Get verification DNS records for a domain
-     * https://learn.microsoft.com/en-us/graph/api/domain-list-verificationdnsrecords?view=graph-rest-1.0&tabs=http
-     * @param domainId The domain ID (which is the fully qualified domain name)
-     * @returns An array of DomainDnsRecord objects
-     */
-    async getDomainVerificationDnsRecords(domainId: string): Promise<DomainDnsRecord[]> {
-        const { data } = await this.httpAgent.get(`/domains/${domainId}/verificationDnsRecords`)
-        return data.value
     }
 }

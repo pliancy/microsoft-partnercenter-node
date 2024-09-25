@@ -1,4 +1,3 @@
-import { MicrosoftGraphApi } from './microsoft-graph-api'
 import mockAxios from 'jest-mock-axios'
 import {
     CreateGDAPAccessAssignment,
@@ -6,19 +5,15 @@ import {
     GDAPAccessAssignment,
     GDAPRelationship,
     UpdateGDAPAccessAssignment,
-} from './types/gdap.types'
+} from '../../types'
+import { Gdap } from './gdap'
+import { AxiosInstance } from 'axios'
 
-describe('Microsoft Graph API', () => {
-    let graphApi: MicrosoftGraphApi
+describe('Gdap', () => {
+    let gdap: Gdap
 
     beforeEach(() => {
-        graphApi = new MicrosoftGraphApi({
-            tenantId: 'test',
-            authentication: {
-                clientId: 'test',
-                clientSecret: 'test',
-            },
-        })
+        gdap = new Gdap(mockAxios as never as AxiosInstance)
     })
 
     afterEach(() => {
@@ -31,7 +26,7 @@ describe('Microsoft Graph API', () => {
         const data: CreateGDAPRelationship = {
             customer: { tenantId: 'customerId' },
         } as CreateGDAPRelationship
-        const result = await graphApi.createGDAPRelationship(data)
+        const result = await gdap.createGDAPRelationship(data)
         expect(result).toEqual(relationship)
         expect(mockAxios.post).toHaveBeenCalledWith(
             '/tenantRelationships/delegatedAdminRelationships',
@@ -42,7 +37,7 @@ describe('Microsoft Graph API', () => {
     it('should get all GDAP relationships', async () => {
         const relationships: GDAPRelationship[] = [{ id: '1' }, { id: '2' }] as GDAPRelationship[]
         jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: { value: relationships } })
-        const result = await graphApi.getAllGDAPRelationships()
+        const result = await gdap.getAllGDAPRelationships()
         expect(result).toEqual(relationships)
         expect(mockAxios.get).toHaveBeenCalledWith(
             '/tenantRelationships/delegatedAdminRelationships',
@@ -52,7 +47,7 @@ describe('Microsoft Graph API', () => {
     it('should get a GDAP relationship', async () => {
         const relationship: GDAPRelationship = { id: '1' } as GDAPRelationship
         jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: relationship })
-        const result = await graphApi.getGDAPRelationship('1')
+        const result = await gdap.getGDAPRelationship('1')
         expect(result).toEqual(relationship)
         expect(mockAxios.get).toHaveBeenCalledWith(
             '/tenantRelationships/delegatedAdminRelationships/1',
@@ -62,7 +57,7 @@ describe('Microsoft Graph API', () => {
     it('should get GDAP relationships by customer ID', async () => {
         const relationships: GDAPRelationship[] = [{ id: '1' }, { id: '2' }] as GDAPRelationship[]
         jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: { value: relationships } })
-        const result = await graphApi.getGDAPRelationshipsByCustomerId('customerId')
+        const result = await gdap.getGDAPRelationshipsByCustomerId('customerId')
         expect(result).toEqual(relationships)
         expect(mockAxios.get).toHaveBeenCalledWith(
             '/tenantRelationships/delegatedAdminRelationships',
@@ -81,7 +76,7 @@ describe('Microsoft Graph API', () => {
             displayName: 'Updated',
         } as GDAPRelationship
         jest.spyOn(mockAxios, 'patch').mockResolvedValue({ data: updatedRelationship })
-        const result = await graphApi.updateGDAPRelationship('1', {
+        const result = await gdap.updateGDAPRelationship('1', {
             displayName: 'Updated',
         })
         expect(result).toEqual(updatedRelationship)
@@ -93,7 +88,7 @@ describe('Microsoft Graph API', () => {
 
     it('should delete a GDAP relationship', async () => {
         jest.spyOn(mockAxios, 'delete').mockResolvedValue({})
-        await graphApi.deleteGDAPRelationship('1')
+        await gdap.deleteGDAPRelationship('1')
         expect(mockAxios.delete).toHaveBeenCalledWith(
             '/tenantRelationships/delegatedAdminRelationships/1',
         )
@@ -105,7 +100,7 @@ describe('Microsoft Graph API', () => {
         const data: CreateGDAPAccessAssignment = {
             accessContainer: { id: 'containerId' },
         } as never as CreateGDAPAccessAssignment
-        const result = await graphApi.createGDAPAccessAssignment('relationshipId', data)
+        const result = await gdap.createGDAPAccessAssignment('relationshipId', data)
         expect(result).toEqual(assignment)
         expect(mockAxios.post).toHaveBeenCalledWith(
             '/tenantRelationships/delegatedAdminRelationships/relationshipId/accessAssignments',
@@ -119,7 +114,7 @@ describe('Microsoft Graph API', () => {
             { id: '2' },
         ] as GDAPAccessAssignment[]
         jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: { value: assignments } })
-        const result = await graphApi.getAllGDAPAccessAssignments('relationshipId')
+        const result = await gdap.getAllGDAPAccessAssignments('relationshipId')
         expect(result).toEqual(assignments)
         expect(mockAxios.get).toHaveBeenCalledWith(
             '/tenantRelationships/delegatedAdminRelationships/relationshipId/accessAssignments',
@@ -129,7 +124,7 @@ describe('Microsoft Graph API', () => {
     it('should get a GDAP access assignment', async () => {
         const assignment: GDAPAccessAssignment = { id: '1' } as GDAPAccessAssignment
         jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: assignment })
-        const result = await graphApi.getGDAPAccessAssignment('relationshipId', '1')
+        const result = await gdap.getGDAPAccessAssignment('relationshipId', '1')
         expect(result).toEqual(assignment)
         expect(mockAxios.get).toHaveBeenCalledWith(
             '/tenantRelationships/delegatedAdminRelationships/relationshipId/accessAssignments/1',
@@ -145,7 +140,7 @@ describe('Microsoft Graph API', () => {
         const data: UpdateGDAPAccessAssignment = {
             accessDetails: { unifiedRoles: ['role1'] },
         } as never as UpdateGDAPAccessAssignment
-        const result = await graphApi.updateGDAPAccessAssignment('relationshipId', '1', data)
+        const result = await gdap.updateGDAPAccessAssignment('relationshipId', '1', data)
         expect(result).toEqual(updatedAssignment)
         expect(mockAxios.patch).toHaveBeenCalledWith(
             '/tenantRelationships/delegatedAdminRelationships/relationshipId/accessAssignments/1',
@@ -155,7 +150,7 @@ describe('Microsoft Graph API', () => {
 
     it('should delete a GDAP access assignment', async () => {
         jest.spyOn(mockAxios, 'delete').mockResolvedValue({})
-        await graphApi.deleteGDAPAccessAssignment('relationshipId', '1')
+        await gdap.deleteGDAPAccessAssignment('relationshipId', '1')
         expect(mockAxios.delete).toHaveBeenCalledWith(
             '/tenantRelationships/delegatedAdminRelationships/relationshipId/accessAssignments/1',
         )
