@@ -20,29 +20,41 @@ describe('Users', () => {
         })
     })
 
+    describe('getManager', () => {
+        it(`gets a user's manager by user's userPrincipalName`, async () => {
+            const user = { id: 'id', userPrincipalName: 'userPrincipalName' }
+            const manager = { id: 'id', userPrincipalName: 'managerPrincipalName' }
+            jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: manager })
+            await expect(users.getManager(user.userPrincipalName)).resolves.toEqual(manager)
+            expect(mockAxios.get).toHaveBeenCalledWith(`users/${user.userPrincipalName}/manager`)
+        })
+    })
+
     describe('assignManager', () => {
         it('throws an error given user is not found', async () => {
-            jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: null })
+            const err = new Error('resource not found')
+            jest.spyOn(mockAxios, 'get').mockRejectedValue(err)
             try {
                 await users.assignManager('user', 'manager')
                 expect(true).toBe(false)
             } catch (error: any) {
                 expect(error.message).toEqual(
-                    `Attempted to assign user's manager, but no user was found with userPrincipalName "user"`,
+                    `${err.message}: Attempted to assign user's manager, but no user was found with userPrincipalName "user"`,
                 )
             }
         })
 
         it('throws an error given manager is not found', async () => {
+            const err = new Error('resource not found')
             jest.spyOn(mockAxios, 'get')
                 .mockResolvedValueOnce({ data: { id: 'userId' } })
-                .mockResolvedValueOnce({ data: null })
+                .mockRejectedValueOnce(err)
             try {
                 await users.assignManager('user', 'manager')
                 expect(true).toBe(false)
             } catch (error: any) {
                 expect(error.message).toEqual(
-                    `Attempted to assign manager as user's manager, but no user was found with userPrincipalName "manager"`,
+                    `${err.message}: Attempted to assign manager as user's manager, but no user was found with userPrincipalName "manager"`,
                 )
             }
         })
@@ -56,6 +68,28 @@ describe('Users', () => {
             expect(mockAxios.put).toHaveBeenCalledWith('users/userId/manager/$ref', {
                 '@odata.id': 'https://graph.microsoft.com/v1.0/users/managerId',
             })
+        })
+    })
+
+    describe('removeManager', () => {
+        it('throws an error given user is not found', async () => {
+            const err = new Error('resource not found')
+            jest.spyOn(mockAxios, 'get').mockRejectedValue(err)
+            try {
+                await users.removeManager('user')
+                expect(true).toBe(false)
+            } catch (error: any) {
+                expect(error.message).toEqual(
+                    `${err.message}: Attempted to remove user's manager, but no user was found with userPrincipalName "user"`,
+                )
+            }
+        })
+
+        it('removes a manager', async () => {
+            jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: { id: 'userId' } })
+            jest.spyOn(mockAxios, 'delete').mockResolvedValue({ status: 204 })
+            await users.removeManager('user')
+            expect(mockAxios.delete).toHaveBeenCalledWith('users/userId/manager/$ref')
         })
     })
 })
