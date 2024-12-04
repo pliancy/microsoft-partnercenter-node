@@ -1702,10 +1702,10 @@ aws4@^1.8.0:
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.12.0.tgz#ce1c9d143389679e253b314241ea9aa5cec980d3"
   integrity sha512-NmWvPnx0F1SfrQbYwOi7OeaNGokp9XhzNioJ/CSBs8Qa4vxug81mhJEAVZwxXuBmYB5KDRfMq/F3RR0BIU7sWg==
 
-axios@1.7.7:
-  version "1.7.7"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.7.tgz#2f554296f9892a72ac8d8e4c5b79c14a91d0a47f"
-  integrity sha512-S4kL7XrjgBmvdGut0sN3yJxqYzrDOnivkBiN0OFs6hLiUam3UPvswUo0kqGyhqUZGEOytHyumEdXsAkgCOUf3Q==
+axios@1.7.9:
+  version "1.7.9"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.9.tgz#d7d071380c132a24accda1b2cfc1535b79ec650a"
+  integrity sha512-LhLcE7Hbiryz8oMDdDptSrWowmB4Bl6RCt6sIJKpRB4XtVf0iEgewX3au/pJqm+Py1kCASkb/FFKjxQaLtxJvw==
   dependencies:
     follow-redirects "^1.15.6"
     form-data "^4.0.0"
@@ -4293,10 +4293,10 @@ jest-message-util@^29.7.0:
     slash "^3.0.0"
     stack-utils "^2.0.3"
 
-jest-mock-axios@4.7.3:
-  version "4.7.3"
-  resolved "https://registry.yarnpkg.com/jest-mock-axios/-/jest-mock-axios-4.7.3.tgz#8b93cf651eae46d21aa969729a746d819ba6b9c6"
-  integrity sha512-RHHdCZWreeX1EAl77u46yqYJG5aKX9l4zsCwf6wsIb3uy3w/XaEC5n4wbyluNujXQSZfNH1ir8OXinoewYQkUw==
+jest-mock-axios@4.8.0:
+  version "4.8.0"
+  resolved "https://registry.yarnpkg.com/jest-mock-axios/-/jest-mock-axios-4.8.0.tgz#4a4f4be997908d7917b58ef1eca401227a67d195"
+  integrity sha512-rYObNIi5EMy/kKq6dY77vw+nh/G6bwK6qpfNogekH+l2wcYBDSQYJPaBinpANjG1nqoQS9z/iWMLYlc+3ZDKtQ==
   dependencies:
     "@jest/globals" "^29.7.0"
     jest "~29.7.0"
