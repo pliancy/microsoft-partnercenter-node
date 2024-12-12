@@ -5,7 +5,8 @@ export interface AssignedLicense {
     skuId: string
 }
 
-export interface GraphUserAssignedLicense extends Pick<GraphUser, 'id' | 'userPrincipalName'> {
+export interface GraphUserAssignedLicense
+    extends Pick<GraphUser, 'id' | 'userPrincipalName' | 'displayName'> {
     assignedLicenses: AssignedLicense[]
 }
 
