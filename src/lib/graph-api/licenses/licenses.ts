@@ -6,7 +6,7 @@ export class Licenses {
 
     async getUserLicenses(): Promise<GraphUserAssignedLicense[]> {
         const { data: users } = await this.http.get(
-            'users?$select=id,userPrincipalName,assignedLicenses',
+            'users?$select=id,userPrincipalName,assignedLicenses,displayName',
         )
         return users.value
     }

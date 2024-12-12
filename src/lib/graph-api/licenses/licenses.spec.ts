@@ -18,6 +18,7 @@ describe('Licenses', () => {
                 {
                     id: 'user1',
                     userPrincipalName: 'user1@test.com',
+                    displayName: 'User 1',
                     assignedLicenses: [
                         {
                             skuId: 'sku1',
@@ -33,7 +34,7 @@ describe('Licenses', () => {
 
             await expect(licenses.getUserLicenses()).resolves.toEqual(mockUserLicenses)
             expect(mockAxios.get).toHaveBeenCalledWith(
-                'users?$select=id,userPrincipalName,assignedLicenses',
+                'users?$select=id,userPrincipalName,assignedLicenses,displayName',
             )
         })
     })
