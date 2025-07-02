@@ -89,6 +89,10 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         return data.items
     }
 
+    async deleteCustomerUser(customerId: string, userId: string): Promise<void> {
+        await this.httpAgent.delete(`/customers/${customerId}/users/${userId}`)
+    }
+
     async getCustomerUserById(customerId: string, userId: string): Promise<User> {
         const { data } = await this.httpAgent.get(`/customers/${customerId}/users/${userId}`)
         return data
