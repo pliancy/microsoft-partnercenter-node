@@ -114,5 +114,6 @@ export interface CreateOrUpdateGraphUser
         | 'passwordChangeNotRequired'
         | 'manager'
     > {
+    // manager userPrincipalName
     manager?: string | null
 }

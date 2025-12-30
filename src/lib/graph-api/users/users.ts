@@ -14,6 +14,13 @@ export class Users {
         return user
     }
 
+    /**
+     * Creates a new user in the system and optionally assigns a manager to the user.
+     *
+     * @param {CreateOrUpdateGraphUser} data - The user data required for creation. If a manager is included, it will be validated and assigned to the user.
+     * @return {Promise<GraphUser>} A promise resolving to the created user object.
+     * @throws {Error} If a manager's userPrincipalName is provided but does not exist in the system.
+     */
     async create(data: CreateOrUpdateGraphUser): Promise<GraphUser> {
         let managerId: string | null = null
         if (data.manager) {
@@ -35,6 +42,15 @@ export class Users {
         return user
     }
 
+    /**
+     * Updates a GraphUser with the provided data. If a manager is specified in the data,
+     * it will handle assigning or removing the manager as appropriate.
+     *
+     * @param {string} id - The unique identifier of the user to update.
+     * @param {CreateOrUpdateGraphUser} data - The data to update the user with. Contains attributes
+     * to modify, including the manager information if applicable.
+     * @return {Promise<GraphUser>} A promise that resolves to the updated GraphUser object.
+     */
     async update(id: string, data: CreateOrUpdateGraphUser): Promise<GraphUser> {
         if (data.manager !== undefined) {
             const currentManager = await this.getManager(id).catch(() => null)
