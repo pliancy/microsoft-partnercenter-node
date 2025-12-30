@@ -1,5 +1,5 @@
 import { AxiosInstance, AxiosResponse } from 'axios'
-import { GraphUser } from './user.types'
+import { CreateOrUpdateGraphUser, GraphUser } from './user.types'
 
 export class Users {
     constructor(private readonly http: AxiosInstance) {}
@@ -11,6 +11,40 @@ export class Users {
      */
     async get(id: string): Promise<GraphUser> {
         const { data: user } = await this.http.get(`users/${id}`)
+        return user
+    }
+
+    async create(data: CreateOrUpdateGraphUser): Promise<GraphUser> {
+        let managerId: string | null = null
+        if (data.manager) {
+            managerId = data.manager
+            delete data.manager
+        }
+
+        const { data: user } = await this.http.post('/users', data)
+
+        if (managerId) {
+            const manager = await this.get(managerId).catch(() => null)
+            if (!manager) throw new Error(`No manager found with userPrincipalName "${managerId}"`)
+            await this.assignManager(user.id, managerId)
+        }
+
+        return user
+    }
+
+    async update(id: string, data: CreateOrUpdateGraphUser): Promise<GraphUser> {
+        if (data.manager !== undefined) {
+            const currentManager = await this.getManager(id).catch(() => null)
+            if (data.manager === null) {
+                if (currentManager) {
+                    await this.removeManager(id)
+                }
+            } else if (!currentManager || currentManager.userPrincipalName !== data.manager) {
+                await this.assignManager(id, data.manager)
+            }
+            delete data.manager
+        }
+        const { data: user } = await this.http.patch(`/users/${id}`, data)
         return user
     }
 

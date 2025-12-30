@@ -92,4 +92,136 @@ describe('Users', () => {
             expect(mockAxios.delete).toHaveBeenCalledWith('users/userId/manager/$ref')
         })
     })
+
+    describe('create', () => {
+        it('creates a user without a manager', async () => {
+            const data = { displayName: 'John Doe' } as any
+            const createdUser = { id: 'userId', ...data }
+            jest.spyOn(mockAxios, 'post').mockResolvedValue({ data: createdUser })
+
+            const result = await users.create(data)
+
+            expect(result).toEqual(createdUser)
+            expect(mockAxios.post).toHaveBeenCalledWith('/users', { displayName: 'John Doe' })
+        })
+
+        it('creates a user with a manager', async () => {
+            const data = { displayName: 'John Doe', manager: 'managerId' } as any
+            const createdUser = { id: 'userId', displayName: 'John Doe' }
+            const manager = { id: 'managerId', userPrincipalName: 'managerUPN' }
+
+            jest.spyOn(mockAxios, 'post').mockResolvedValue({ data: createdUser })
+            jest.spyOn(mockAxios, 'get')
+                .mockResolvedValueOnce({ data: manager }) // create -> get(managerId)
+                .mockResolvedValueOnce({ data: createdUser }) // assignManager -> get(userId)
+                .mockResolvedValueOnce({ data: manager }) // assignManager -> get(managerId)
+            jest.spyOn(mockAxios, 'put').mockResolvedValue({ status: 204 })
+
+            const result = await users.create(data)
+
+            expect(result).toEqual(createdUser)
+            expect(mockAxios.post).toHaveBeenCalledWith('/users', { displayName: 'John Doe' })
+            expect(mockAxios.put).toHaveBeenCalledWith('users/userId/manager/$ref', {
+                '@odata.id': 'https://graph.microsoft.com/v1.0/users/managerId',
+            })
+        })
+
+        it('creates a user even if manager check is redundant', async () => {
+            const data = { displayName: 'John Doe', manager: 'managerId' } as any
+            const createdUser = { id: 'userId', displayName: 'John Doe' }
+            const manager = { id: 'managerId', userPrincipalName: 'managerUPN' }
+
+            jest.spyOn(mockAxios, 'post').mockResolvedValue({ data: createdUser })
+            jest.spyOn(mockAxios, 'get')
+                .mockResolvedValueOnce({ data: manager }) // create -> get(managerId)
+                .mockResolvedValueOnce({ data: createdUser }) // assignManager -> get(userId)
+                .mockResolvedValueOnce({ data: manager }) // assignManager -> get(managerId)
+            jest.spyOn(mockAxios, 'put').mockResolvedValue({ status: 204 })
+
+            const result = await users.create(data)
+
+            expect(result).toEqual(createdUser)
+            expect(mockAxios.put).toHaveBeenCalled()
+        })
+    })
+
+    describe('update', () => {
+        it('updates a user without touching the manager', async () => {
+            const data = { displayName: 'John Doe Updated' } as any
+            const updatedUser = { id: 'userId', ...data }
+            jest.spyOn(mockAxios, 'patch').mockResolvedValue({ data: updatedUser })
+
+            const result = await users.update('userId', data)
+
+            expect(result).toEqual(updatedUser)
+            expect(mockAxios.patch).toHaveBeenCalledWith('/users/userId', data)
+            expect(mockAxios.get).not.toHaveBeenCalled()
+        })
+
+        it('updates a user and assigns a new manager', async () => {
+            const data = { manager: 'newManagerId' } as any
+            const updatedUser = { id: 'userId' }
+            const newManager = { id: 'newManagerId', userPrincipalName: 'newManagerUPN' }
+
+            jest.spyOn(mockAxios, 'patch').mockResolvedValue({ data: updatedUser })
+            jest.spyOn(mockAxios, 'get')
+                .mockRejectedValueOnce(new Error('Not Found')) // getManager(userId)
+                .mockResolvedValueOnce({ data: updatedUser }) // assignManager -> get(userId)
+                .mockResolvedValueOnce({ data: newManager }) // assignManager -> get(newManagerId)
+            jest.spyOn(mockAxios, 'put').mockResolvedValue({ status: 204 })
+
+            const result = await users.update('userId', data)
+
+            expect(result).toEqual(updatedUser)
+            expect(mockAxios.put).toHaveBeenCalledWith('users/userId/manager/$ref', {
+                '@odata.id': 'https://graph.microsoft.com/v1.0/users/newManagerId',
+            })
+            expect(mockAxios.patch).toHaveBeenCalledWith('/users/userId', {})
+        })
+
+        it('updates a user but skips assigning manager if it is the same', async () => {
+            const data = { manager: 'managerId' } as any
+            const updatedUser = { id: 'userId' }
+            const manager = { id: 'managerId', userPrincipalName: 'managerId' }
+
+            jest.spyOn(mockAxios, 'patch').mockResolvedValue({ data: updatedUser })
+            jest.spyOn(mockAxios, 'get').mockResolvedValueOnce({ data: manager }) // getManager(userId)
+
+            const result = await users.update('userId', data)
+
+            expect(result).toEqual(updatedUser)
+            expect(mockAxios.put).not.toHaveBeenCalled()
+            expect(mockAxios.patch).toHaveBeenCalledWith('/users/userId', {})
+        })
+
+        it('removes a manager if set to null', async () => {
+            const data = { manager: null } as any
+            const updatedUser = { id: 'userId' }
+            const manager = { id: 'managerId' }
+
+            jest.spyOn(mockAxios, 'patch').mockResolvedValue({ data: updatedUser })
+            jest.spyOn(mockAxios, 'get')
+                .mockResolvedValueOnce({ data: manager }) // getManager(userId)
+                .mockResolvedValueOnce({ data: updatedUser }) // removeManager -> get(userId)
+            jest.spyOn(mockAxios, 'delete').mockResolvedValue({ status: 204 })
+
+            const result = await users.update('userId', data)
+
+            expect(result).toEqual(updatedUser)
+            expect(mockAxios.delete).toHaveBeenCalledWith('users/userId/manager/$ref')
+        })
+
+        it('skips removing manager if set to null but no manager exists', async () => {
+            const data = { manager: null } as any
+            const updatedUser = { id: 'userId' }
+
+            jest.spyOn(mockAxios, 'patch').mockResolvedValue({ data: updatedUser })
+            jest.spyOn(mockAxios, 'get').mockRejectedValueOnce(new Error('Not Found')) // getManager(userId)
+
+            const result = await users.update('userId', data)
+
+            expect(result).toEqual(updatedUser)
+            expect(mockAxios.delete).not.toHaveBeenCalled()
+        })
+    })
 })
