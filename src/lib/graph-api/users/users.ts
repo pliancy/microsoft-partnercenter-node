@@ -21,11 +21,14 @@ export class Users {
             delete data.manager
         }
 
-        const { data: user } = await this.http.post('/users', data)
-
         if (managerId) {
             const manager = await this.get(managerId).catch(() => null)
             if (!manager) throw new Error(`No manager found with userPrincipalName "${managerId}"`)
+        }
+
+        const { data: user } = await this.http.post('/users', data)
+
+        if (managerId) {
             await this.assignManager(user.id, managerId)
         }
 
