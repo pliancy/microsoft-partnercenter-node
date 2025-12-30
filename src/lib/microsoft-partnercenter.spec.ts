@@ -184,6 +184,13 @@ describe('Microsoft Partner Center', () => {
         expect(mockAxios.post).toHaveBeenCalledWith('/customers', { id: '1' })
     })
 
+    it('should delete a customer user', async () => {
+        jest.spyOn(mockAxios, 'delete').mockResolvedValue({ data: {} })
+        const result = await partnerCenter.deleteCustomerUser('1', '1')
+        expect(result).toBeUndefined()
+        expect(mockAxios.delete).toHaveBeenCalledWith('/customers/1/users/1')
+    })
+
     it('should create a user', async () => {
         const user = { id: '1' }
         jest.spyOn(mockAxios, 'post').mockResolvedValue({ data: user })
