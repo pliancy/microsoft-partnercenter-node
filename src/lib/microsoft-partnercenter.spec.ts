@@ -274,7 +274,7 @@ describe('Microsoft Partner Center', () => {
         )
 
         expect(mockTokenManager.authenticate).toHaveBeenCalledWith(
-            'https://api.partner.microsoft.com',
+            'https://api.partner.microsoft.com/.default',
         )
     })
 })

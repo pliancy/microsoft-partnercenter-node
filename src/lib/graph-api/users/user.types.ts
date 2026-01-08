@@ -1,6 +1,6 @@
 export interface GraphUser {
     aboutMe: string
-    accountEnabled: true
+    accountEnabled: boolean
     ageGroup: string
     assignedLicenses: { '@odata.type': 'microsoft.graph.assignedLicense' }[]
     assignedPlans: { '@odata.type': 'microsoft.graph.assignedPlan' }[]
@@ -49,7 +49,7 @@ export interface GraphUser {
     onPremisesProvisioningErrors: { '@odata.type': 'microsoft.graph.onPremisesProvisioningError' }[]
     onPremisesSamAccountName: string
     onPremisesSecurityIdentifier: string
-    onPremisesSyncEnabled: true
+    onPremisesSyncEnabled: boolean
     onPremisesUserPrincipalName: string
     otherMails: string[]
     passwordPolicies: string
@@ -65,7 +65,7 @@ export interface GraphUser {
     schools: string[]
     securityIdentifier: string
     serviceProvisioningErrors: { '@odata.type': 'microsoft.graph.serviceProvisioningXmlError' }[]
-    showInAddressList: true
+    showInAddressList: boolean
     signInActivity: { '@odata.type': 'microsoft.graph.signInActivity' }
     signInSessionsValidFromDateTime: Date
     skills: string[]
@@ -98,3 +98,17 @@ export interface GraphUser {
     photos: { '@odata.type': 'microsoft.graph.profilePhoto' }[]
     registeredDevices: { '@odata.type': 'microsoft.graph.directoryObject' }[]
 }
+
+export const GraphUserDefaultProperties = [
+    'businessPhones',
+    'displayName',
+    'givenName',
+    'jobTitle',
+    'mail',
+    'mobilePhone',
+    'officeLocation',
+    'preferredLanguage',
+    'surname',
+    'userPrincipalName',
+    'id',
+]

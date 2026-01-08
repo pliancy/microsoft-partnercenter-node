@@ -42,7 +42,7 @@ describe('HttpAgent', () => {
         const { agent, tokenManager: _tokenManager } = initializeHttpAndTokenManager(
             conf,
             'baseUrl',
-            'scope',
+            'https://api.partner.microsoft.com/.default',
         )
         instance = agent
         tokenManager = _tokenManager

@@ -1,13 +1,18 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import qs from 'querystring'
 import { decode, JwtPayload } from 'jsonwebtoken'
-import { GraphApiConfig, IOAuthResponse, IPartnerCenterConfig } from '../types/common.types'
+import {
+    AuthScope,
+    GraphApiConfig,
+    IOAuthResponse,
+    IPartnerCenterConfig,
+} from '../types/common.types'
 
 type AuthData = {
     grant_type: string
     client_id: string
     client_secret: string
-    scope: string
+    scope: AuthScope
     refresh_token?: string
     resource?: string
 }
@@ -17,11 +22,11 @@ export class TokenManager {
     private _refreshToken = ''
     private reAuthed = false
     private retry = 0
-    private scope: string
+    private readonly scope: AuthScope
 
     constructor(
         private config: IPartnerCenterConfig | GraphApiConfig,
-        scope: string,
+        scope: AuthScope,
     ) {
         this.scope = scope
     }
@@ -38,9 +43,9 @@ export class TokenManager {
         return this._refreshToken
     }
 
-    async getAccessToken(resource?: string) {
+    async getAccessToken(scope?: AuthScope): Promise<string> {
         if (!this.accessToken || this.isTokenExpired()) {
-            const auth = await this.authenticate(resource)
+            const auth = await this.authenticate(scope)
 
             this.accessToken = auth.access_token
 
@@ -77,13 +82,20 @@ export class TokenManager {
         throw err
     }
 
-    async authenticate(resource?: string) {
-        const authData = this.prepareAuthData(resource)
+    /**
+     * Authenticates with the Microsoft Partner Center using the provided authentication scope.
+     *
+     * @param {AuthScope} [scope] - Optional parameter representing the scope of the authentication request.
+     * @return {Promise<IOAuthResponse>} A promise that resolves to the authentication response object.
+     * @throws {Error} Throws an error if the authentication process fails.
+     */
+    async authenticate(scope?: AuthScope): Promise<IOAuthResponse> {
+        const authData = this.prepareAuthData(scope)
 
         try {
             const tenantId = this.getTenantId()
             const { data }: { data: IOAuthResponse } = await axios.post(
-                `https://login.microsoftonline.com/${tenantId}/oauth2/token`,
+                `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
                 authData,
                 {
                     headers: {
@@ -93,12 +105,22 @@ export class TokenManager {
             )
 
             return data
-        } catch (error) {
-            throw new Error('Failed to authenticate with the Microsoft Partner Center.')
+        } catch (error: any) {
+            const message =
+                error?.response?.data?.error_description ||
+                error?.message ||
+                'Failed to authenticate with the Microsoft Partner Center.'
+            throw new Error(message)
         }
     }
 
-    private prepareAuthData(resource?: string): string {
+    /**
+     * Prepares and serializes authentication data for API requests.
+     *
+     * @param {AuthScope} [scope] - Optional scope to override or specify the scope to authenticate to.
+     * @return {string} A URL-encoded string representation of the authentication data.
+     */
+    private prepareAuthData(scope?: AuthScope): string {
         const { refreshToken, clientId, clientSecret } = this.config.authentication
 
         const baseAuthData = {
@@ -118,8 +140,8 @@ export class TokenManager {
                   grant_type: 'client_credentials',
               }
 
-        if (resource) {
-            authData.resource = resource
+        if (scope) {
+            authData.scope = scope
         }
 
         return qs.stringify(authData)
@@ -156,7 +178,7 @@ export class TokenManager {
 export function initializeHttpAndTokenManager(
     config: IPartnerCenterConfig | GraphApiConfig,
     baseURL: string,
-    scope: string,
+    scope: AuthScope,
 ) {
     const tokenManager = new TokenManager(config, scope)
     const agent = axios.create({ baseURL, timeout: config.timeoutMs })

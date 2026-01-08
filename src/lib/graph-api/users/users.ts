@@ -1,5 +1,5 @@
 import { AxiosInstance, AxiosResponse } from 'axios'
-import { GraphUser } from './user.types'
+import { GraphUser, GraphUserDefaultProperties } from './user.types'
 
 export class Users {
     constructor(private readonly http: AxiosInstance) {}
@@ -8,10 +8,54 @@ export class Users {
      * Gets a user by id or userPrincipalName
      * https://learn.microsoft.com/en-us/graph/api/user-get
      * @param id {id | userPrincipalName}
+     * @param additionalProperties (keyof GraphUser)[]
+     * @param expandProperties this can be either a string (keyof GraphUser) or a function format,
+     * ($select/$expand), e.g., 'manager($select=id,userPrincipalName)'
      */
-    async get(id: string): Promise<GraphUser> {
-        const { data: user } = await this.http.get(`users/${id}`)
+    async get(
+        id: string,
+        additionalProperties: (keyof GraphUser)[] = [],
+        expandProperties: (keyof GraphUser | string)[] = [],
+    ): Promise<GraphUser> {
+        let url = `users/${id}?$select=${GraphUserDefaultProperties.join(',')}`
+        if (additionalProperties.length) {
+            // The leading comma continues the defaultProperties string
+            url += `,${additionalProperties.join(',')}`
+        }
+
+        if (expandProperties.length) {
+            url += `&$expand=${expandProperties.join(',')}`
+        }
+
+        const { data: user } = await this.http.get(url)
         return user
+    }
+
+    /**
+     * Creates a new user in the system.
+     *
+     * @param {Omit<GraphUser, 'id'>} data - The user data required for creation. If a manager is included, it will be validated and assigned to the user.
+     * @return {Promise<GraphUser>} A promise resolving to the created user object.
+     * @throws {Error} If a manager's userPrincipalName is provided but does not exist in the system.
+     */
+    async create(data: Omit<GraphUser, 'id'>): Promise<GraphUser> {
+        const { data: user } = await this.http.post('users', data)
+        return user
+    }
+
+    /**
+     * Updates a GraphUser with the provided data.
+     *
+     * @param {string} id - The unique identifier of the user to update.
+     * @param {Partial<GraphUser>} data - The data to update the user with. Contains attributes
+     * to modify, including the manager information if applicable.
+     * @return {Promise<GraphUser>} A promise that resolves to the updated GraphUser object.
+     */
+    async update(id: string, data: Partial<GraphUser>): Promise<GraphUser> {
+        // Graph's PATCH returns 204 No Content
+        await this.http.patch(`users/${id}`, data)
+        const upn = data?.userPrincipalName ?? id
+        return this.get(upn)
     }
 
     /**

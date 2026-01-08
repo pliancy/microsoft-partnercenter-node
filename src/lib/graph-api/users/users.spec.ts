@@ -1,6 +1,7 @@
 import { Users } from './users'
 import mockAxios from 'jest-mock-axios'
 import { AxiosInstance } from 'axios'
+import { GraphUserDefaultProperties } from './user.types'
 
 describe('Users', () => {
     let users: Users
@@ -12,11 +13,45 @@ describe('Users', () => {
     it('creates an instance of Users', () => expect(users).toBeTruthy())
 
     describe('get', () => {
-        it('gets a user by id or userPrincipalName', async () => {
+        it('gets a user by id or userPrincipalName (default)', async () => {
             const data = { id: 'id', userPrincipalName: 'userPrincipalName' }
             jest.spyOn(mockAxios, 'get').mockResolvedValue({ data })
             await expect(users.get('id')).resolves.toEqual(data)
-            expect(mockAxios.get).toHaveBeenCalledWith('users/id')
+            expect(mockAxios.get).toHaveBeenCalledWith(
+                `users/id?$select=${GraphUserDefaultProperties.join(',')}`,
+            )
+        })
+
+        it('gets a user by id or userPrincipalName (additional)', async () => {
+            const data = {
+                id: 'id',
+                userPrincipalName: 'userPrincipalName',
+                showInAddressList: true,
+            }
+            jest.spyOn(mockAxios, 'get').mockResolvedValue({ data })
+            await expect(users.get('id', ['showInAddressList'])).resolves.toEqual(data)
+            expect(mockAxios.get).toHaveBeenCalledWith(
+                `users/id?$select=${GraphUserDefaultProperties.join(',')},showInAddressList`,
+            )
+        })
+
+        it('gets a user by id or userPrincipalName (expand)', async () => {
+            const data = {
+                id: 'id',
+                userPrincipalName: 'userPrincipalName',
+                showInAddressList: true,
+                manager: {
+                    id: 'managerId',
+                    userPrincipalName: 'managerUPN',
+                },
+            }
+            jest.spyOn(mockAxios, 'get').mockResolvedValue({ data })
+            await expect(
+                users.get('id', ['showInAddressList'], ['manager($select=userPrincipalName)']),
+            ).resolves.toEqual(data)
+            expect(mockAxios.get).toHaveBeenCalledWith(
+                `users/id?$select=${GraphUserDefaultProperties.join(',')},showInAddressList&$expand=manager($select=userPrincipalName)`,
+            )
         })
     })
 
@@ -90,6 +125,36 @@ describe('Users', () => {
             jest.spyOn(mockAxios, 'delete').mockResolvedValue({ status: 204 })
             await users.removeManager('user')
             expect(mockAxios.delete).toHaveBeenCalledWith('users/userId/manager/$ref')
+        })
+    })
+
+    describe('create', () => {
+        it('creates a user', async () => {
+            const data = { displayName: 'John Doe' } as any
+            const createdUser = { id: 'userId', ...data }
+            jest.spyOn(mockAxios, 'post').mockResolvedValue({ data: createdUser })
+
+            const result = await users.create(data)
+
+            expect(result).toEqual(createdUser)
+            expect(mockAxios.post).toHaveBeenCalledWith('users', { displayName: 'John Doe' })
+        })
+    })
+
+    describe('update', () => {
+        it('updates a user', async () => {
+            const data = { displayName: 'John Doe Updated' } as any
+            const updatedUser = { id: 'userId', ...data }
+            jest.spyOn(mockAxios, 'patch').mockResolvedValue(null)
+            jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: updatedUser })
+
+            const result = await users.update('userId', data)
+
+            expect(result).toEqual(updatedUser)
+            expect(mockAxios.patch).toHaveBeenCalledWith('users/userId', data)
+            expect(mockAxios.get).toHaveBeenCalledWith(
+                `users/userId?$select=${GraphUserDefaultProperties.join(',')}`,
+            )
         })
     })
 })
