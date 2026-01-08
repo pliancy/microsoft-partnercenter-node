@@ -334,7 +334,7 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
     async getPriceSheet(market = 'US', priceSheetView = 'updatedlicensebased'): Promise<Buffer> {
         // This api call needs a different resource see: https://github.com/microsoft/Partner-Center-PowerShell/issues/405
         const tokenManager = this.tokenManager
-        const auth = await tokenManager.authenticate('https://api.partner.microsoft.com')
+        const auth = await tokenManager.authenticate('https://api.partner.microsoft.com/.default')
         // Use separate axios call, since we don't want the unique access token to be used in the main httpAgent
         const { data } = await axios.get(
             `https://api.partner.microsoft.com/v1.0/sales/pricesheets(Market='${market}',PricesheetView='${priceSheetView}')/$value`,
