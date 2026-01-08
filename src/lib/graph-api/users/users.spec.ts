@@ -145,13 +145,16 @@ describe('Users', () => {
         it('updates a user', async () => {
             const data = { displayName: 'John Doe Updated' } as any
             const updatedUser = { id: 'userId', ...data }
-            jest.spyOn(mockAxios, 'patch').mockResolvedValue({ data: updatedUser })
+            jest.spyOn(mockAxios, 'patch').mockResolvedValue(null)
+            jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: updatedUser })
 
             const result = await users.update('userId', data)
 
             expect(result).toEqual(updatedUser)
             expect(mockAxios.patch).toHaveBeenCalledWith('users/userId', data)
-            expect(mockAxios.get).not.toHaveBeenCalled()
+            expect(mockAxios.get).toHaveBeenCalledWith(
+                `users/userId?$select=${GraphUserDefaultProperties.join(',')}`,
+            )
         })
     })
 })
