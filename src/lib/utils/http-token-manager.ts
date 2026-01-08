@@ -12,7 +12,7 @@ type AuthData = {
     grant_type: string
     client_id: string
     client_secret: string
-    scope: string
+    scope: AuthScope
     refresh_token?: string
     resource?: string
 }
@@ -22,11 +22,11 @@ export class TokenManager {
     private _refreshToken = ''
     private reAuthed = false
     private retry = 0
-    private readonly scope: string
+    private readonly scope: AuthScope
 
     constructor(
         private config: IPartnerCenterConfig | GraphApiConfig,
-        scope: string,
+        scope: AuthScope,
     ) {
         this.scope = scope
     }
@@ -178,7 +178,7 @@ export class TokenManager {
 export function initializeHttpAndTokenManager(
     config: IPartnerCenterConfig | GraphApiConfig,
     baseURL: string,
-    scope: string,
+    scope: AuthScope,
 ) {
     const tokenManager = new TokenManager(config, scope)
     const agent = axios.create({ baseURL, timeout: config.timeoutMs })

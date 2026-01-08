@@ -1,6 +1,6 @@
 import { AxiosInstance } from 'axios'
 import { TokenManager, initializeHttpAndTokenManager } from './utils/http-token-manager'
-import { GraphApiConfig, IPartnerCenterConfig } from './types'
+import { AuthScope, GraphApiConfig, IPartnerCenterConfig } from './types'
 
 export abstract class MicrosoftApiBase {
     protected readonly httpAgent: AxiosInstance
@@ -9,7 +9,7 @@ export abstract class MicrosoftApiBase {
     protected constructor(
         config: IPartnerCenterConfig | GraphApiConfig,
         baseURL: string,
-        scope: string,
+        scope: AuthScope,
     ) {
         const { agent, tokenManager } = initializeHttpAndTokenManager(config, baseURL, scope)
         this.httpAgent = agent

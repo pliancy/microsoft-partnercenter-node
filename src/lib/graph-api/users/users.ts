@@ -32,7 +32,7 @@ export class Users {
     }
 
     /**
-     * Creates a new user in the system and optionally assigns a manager to the user.
+     * Creates a new user in the system.
      *
      * @param {Omit<GraphUser, 'id'>} data - The user data required for creation. If a manager is included, it will be validated and assigned to the user.
      * @return {Promise<GraphUser>} A promise resolving to the created user object.
@@ -44,8 +44,7 @@ export class Users {
     }
 
     /**
-     * Updates a GraphUser with the provided data. If a manager is specified in the data,
-     * it will handle assigning or removing the manager as appropriate.
+     * Updates a GraphUser with the provided data.
      *
      * @param {string} id - The unique identifier of the user to update.
      * @param {Partial<GraphUser>} data - The data to update the user with. Contains attributes
