@@ -99,23 +99,6 @@ export interface GraphUser {
     registeredDevices: { '@odata.type': 'microsoft.graph.directoryObject' }[]
 }
 
-export interface CreateOrUpdateGraphUser
-    extends GraphUser,
-        Omit<
-            GraphUser,
-            | 'id'
-            | 'createdDateTime'
-            | 'lastPasswordChangeDateTime'
-            | 'passwordPolicies'
-            | 'passwordProfile'
-            | 'passwordLastSetDateTime'
-            | 'passwordResetOptions'
-            | 'passwordResetRequired'
-            | 'passwordChangeRequired'
-            | 'passwordChangeNotRequired'
-            | 'manager'
-        > {}
-
 export const GraphUserDefaultProperties = [
     'businessPhones',
     'displayName',
