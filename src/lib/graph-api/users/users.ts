@@ -54,7 +54,8 @@ export class Users {
     async update(id: string, data: Partial<GraphUser>): Promise<GraphUser> {
         // Graph's PATCH returns 204 No Content
         await this.http.patch(`users/${id}`, data)
-        return this.get(id)
+        const upn = data?.userPrincipalName ?? id
+        return this.get(upn)
     }
 
     /**
