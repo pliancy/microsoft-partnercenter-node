@@ -1,5 +1,5 @@
 import { AxiosInstance, AxiosResponse } from 'axios'
-import { CreateOrUpdateGraphUser, GraphUser } from './user.types'
+import { GraphUser, GraphUserDefaultProperties } from './user.types'
 
 export class Users {
     constructor(private readonly http: AxiosInstance) {}
@@ -8,9 +8,26 @@ export class Users {
      * Gets a user by id or userPrincipalName
      * https://learn.microsoft.com/en-us/graph/api/user-get
      * @param id {id | userPrincipalName}
+     * @param additionalProperties (keyof GraphUser)[]
+     * @param expandProperties this can be either a string (keyof GraphUser) or a function format,
+     * ($select/$expand), e.g., 'manager($select=id,userPrincipalName)'
      */
-    async get(id: string): Promise<GraphUser> {
-        const { data: user } = await this.http.get(`users/${id}`)
+    async get(
+        id: string,
+        additionalProperties: (keyof GraphUser)[] = [],
+        expandProperties: (keyof GraphUser | string)[] = [],
+    ): Promise<GraphUser> {
+        let url = `users/${id}?$select=${GraphUserDefaultProperties.join(',')}`
+        if (additionalProperties.length) {
+            // The leading comma continues the defaultProperties string
+            url += `,${additionalProperties.join(',')}`
+        }
+
+        if (expandProperties.length) {
+            url += `&$expand=${expandProperties.join(',')}`
+        }
+
+        const { data: user } = await this.http.get(url)
         return user
     }
 
@@ -21,24 +38,8 @@ export class Users {
      * @return {Promise<GraphUser>} A promise resolving to the created user object.
      * @throws {Error} If a manager's userPrincipalName is provided but does not exist in the system.
      */
-    async create(data: CreateOrUpdateGraphUser): Promise<GraphUser> {
-        let managerId: string | null = null
-        if (data.manager) {
-            managerId = data.manager
-            delete data.manager
-        }
-
-        if (managerId) {
-            const manager = await this.get(managerId).catch(() => null)
-            if (!manager) throw new Error(`No manager found with userPrincipalName "${managerId}"`)
-        }
-
+    async create(data: Omit<GraphUser, 'id'>): Promise<GraphUser> {
         const { data: user } = await this.http.post('/users', data)
-
-        if (managerId) {
-            await this.assignManager(user.id, managerId)
-        }
-
         return user
     }
 
@@ -51,18 +52,7 @@ export class Users {
      * to modify, including the manager information if applicable.
      * @return {Promise<GraphUser>} A promise that resolves to the updated GraphUser object.
      */
-    async update(id: string, data: CreateOrUpdateGraphUser): Promise<GraphUser> {
-        if (data.manager !== undefined) {
-            const currentManager = await this.getManager(id).catch(() => null)
-            if (data.manager === null) {
-                if (currentManager) {
-                    await this.removeManager(id)
-                }
-            } else if (!currentManager || currentManager.userPrincipalName !== data.manager) {
-                await this.assignManager(id, data.manager)
-            }
-            delete data.manager
-        }
+    async update(id: string, data: Partial<GraphUser>): Promise<GraphUser> {
         const { data: user } = await this.http.patch(`/users/${id}`, data)
         return user
     }

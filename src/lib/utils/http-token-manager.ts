@@ -17,11 +17,12 @@ export class TokenManager {
     private _refreshToken = ''
     private reAuthed = false
     private retry = 0
-    private scope: string
+    private readonly scope: string
 
     constructor(
         private config: IPartnerCenterConfig | GraphApiConfig,
         scope: string,
+        private readonly oAuthVersion?: 'v1' | 'v2',
     ) {
         this.scope = scope
     }
@@ -82,8 +83,9 @@ export class TokenManager {
 
         try {
             const tenantId = this.getTenantId()
+            const versionPath = this?.oAuthVersion === 'v2' ? '/v2.0' : ''
             const { data }: { data: IOAuthResponse } = await axios.post(
-                `https://login.microsoftonline.com/${tenantId}/oauth2/token`,
+                `https://login.microsoftonline.com/${tenantId}/oauth2${versionPath}/token`,
                 authData,
                 {
                     headers: {
@@ -93,8 +95,12 @@ export class TokenManager {
             )
 
             return data
-        } catch (error) {
-            throw new Error('Failed to authenticate with the Microsoft Partner Center.')
+        } catch (error: any) {
+            const message =
+                error?.response?.data?.error_description ||
+                error?.message ||
+                'Failed to authenticate with the Microsoft Partner Center.'
+            throw new Error(message)
         }
     }
 
@@ -157,8 +163,9 @@ export function initializeHttpAndTokenManager(
     config: IPartnerCenterConfig | GraphApiConfig,
     baseURL: string,
     scope: string,
+    oAuthVersion?: 'v1' | 'v2',
 ) {
-    const tokenManager = new TokenManager(config, scope)
+    const tokenManager = new TokenManager(config, scope, oAuthVersion)
     const agent = axios.create({ baseURL, timeout: config.timeoutMs })
 
     agent.interceptors.request.use(async (req) => {

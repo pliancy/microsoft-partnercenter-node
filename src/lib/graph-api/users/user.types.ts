@@ -100,20 +100,32 @@ export interface GraphUser {
 }
 
 export interface CreateOrUpdateGraphUser
-    extends Omit<
-        GraphUser,
-        | 'id'
-        | 'createdDateTime'
-        | 'lastPasswordChangeDateTime'
-        | 'passwordPolicies'
-        | 'passwordProfile'
-        | 'passwordLastSetDateTime'
-        | 'passwordResetOptions'
-        | 'passwordResetRequired'
-        | 'passwordChangeRequired'
-        | 'passwordChangeNotRequired'
-        | 'manager'
-    > {
-    // manager userPrincipalName
-    manager?: string | null
-}
+    extends GraphUser,
+        Omit<
+            GraphUser,
+            | 'id'
+            | 'createdDateTime'
+            | 'lastPasswordChangeDateTime'
+            | 'passwordPolicies'
+            | 'passwordProfile'
+            | 'passwordLastSetDateTime'
+            | 'passwordResetOptions'
+            | 'passwordResetRequired'
+            | 'passwordChangeRequired'
+            | 'passwordChangeNotRequired'
+            | 'manager'
+        > {}
+
+export const GraphUserDefaultProperties = [
+    'businessPhones',
+    'displayName',
+    'givenName',
+    'jobTitle',
+    'mail',
+    'mobilePhone',
+    'officeLocation',
+    'preferredLanguage',
+    'surname',
+    'userPrincipalName',
+    'id',
+]
