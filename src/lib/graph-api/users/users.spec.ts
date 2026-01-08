@@ -137,7 +137,7 @@ describe('Users', () => {
             const result = await users.create(data)
 
             expect(result).toEqual(createdUser)
-            expect(mockAxios.post).toHaveBeenCalledWith('/users', { displayName: 'John Doe' })
+            expect(mockAxios.post).toHaveBeenCalledWith('users', { displayName: 'John Doe' })
         })
     })
 
@@ -150,7 +150,7 @@ describe('Users', () => {
             const result = await users.update('userId', data)
 
             expect(result).toEqual(updatedUser)
-            expect(mockAxios.patch).toHaveBeenCalledWith('/users/userId', data)
+            expect(mockAxios.patch).toHaveBeenCalledWith('users/userId', data)
             expect(mockAxios.get).not.toHaveBeenCalled()
         })
     })

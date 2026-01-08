@@ -39,7 +39,7 @@ export class Users {
      * @throws {Error} If a manager's userPrincipalName is provided but does not exist in the system.
      */
     async create(data: Omit<GraphUser, 'id'>): Promise<GraphUser> {
-        const { data: user } = await this.http.post('/users', data)
+        const { data: user } = await this.http.post('users', data)
         return user
     }
 
@@ -53,7 +53,7 @@ export class Users {
      * @return {Promise<GraphUser>} A promise that resolves to the updated GraphUser object.
      */
     async update(id: string, data: Partial<GraphUser>): Promise<GraphUser> {
-        const { data: user } = await this.http.patch(`/users/${id}`, data)
+        const { data: user } = await this.http.patch(`users/${id}`, data)
         return user
     }
 
