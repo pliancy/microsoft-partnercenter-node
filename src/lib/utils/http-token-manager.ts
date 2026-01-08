@@ -22,7 +22,6 @@ export class TokenManager {
     constructor(
         private config: IPartnerCenterConfig | GraphApiConfig,
         scope: string,
-        private readonly oAuthVersion?: 'v1' | 'v2',
     ) {
         this.scope = scope
     }
@@ -83,9 +82,8 @@ export class TokenManager {
 
         try {
             const tenantId = this.getTenantId()
-            const versionPath = this?.oAuthVersion === 'v2' ? '/v2.0' : ''
             const { data }: { data: IOAuthResponse } = await axios.post(
-                `https://login.microsoftonline.com/${tenantId}/oauth2${versionPath}/token`,
+                `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
                 authData,
                 {
                     headers: {
@@ -163,9 +161,8 @@ export function initializeHttpAndTokenManager(
     config: IPartnerCenterConfig | GraphApiConfig,
     baseURL: string,
     scope: string,
-    oAuthVersion?: 'v1' | 'v2',
 ) {
-    const tokenManager = new TokenManager(config, scope, oAuthVersion)
+    const tokenManager = new TokenManager(config, scope)
     const agent = axios.create({ baseURL, timeout: config.timeoutMs })
 
     agent.interceptors.request.use(async (req) => {

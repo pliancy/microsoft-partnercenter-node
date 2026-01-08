@@ -6,18 +6,8 @@ export abstract class MicrosoftApiBase {
     protected readonly httpAgent: AxiosInstance
     protected readonly tokenManager: TokenManager
 
-    constructor(
-        config: IPartnerCenterConfig | GraphApiConfig,
-        baseURL: string,
-        scope: string,
-        private readonly oAuthVersion?: 'v1' | 'v2',
-    ) {
-        const { agent, tokenManager } = initializeHttpAndTokenManager(
-            config,
-            baseURL,
-            scope,
-            oAuthVersion,
-        )
+    constructor(config: IPartnerCenterConfig | GraphApiConfig, baseURL: string, scope: string) {
+        const { agent, tokenManager } = initializeHttpAndTokenManager(config, baseURL, scope)
         this.httpAgent = agent
         this.tokenManager = tokenManager
     }
