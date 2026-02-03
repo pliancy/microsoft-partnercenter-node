@@ -1713,10 +1713,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.3.1.tgz#24691fa2b0c3ec8c0d34bfcfd495edac5593ebb4"
   integrity sha512-N87VuQi7HEeRJkhzovao/JviiqKjDKMVKxKMfUvSKw+MbkbW8R0nA3fi/MQhhlxV2fQ+2ReM+/Nt4efdrJx3zA==
 
-"@types/node@22.19.3":
-  version "22.19.3"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.19.3.tgz#8dfde7630d7a8528dc9b34db23d34f764467c02c"
-  integrity sha512-1N9SBnWYOJTrNZCdh/yJE+t910Y128BoyY+zBLWhL3r0TYzlTmFdXrPwHL9DyFZmlEXNQQolTZh3KHV31QDhyA==
+"@types/node@22.19.8":
+  version "22.19.8"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.19.8.tgz#b0c7812df8a98a001570950f4275f0c10fcad101"
+  integrity sha512-ebO/Yl+EAvVe8DnMfi+iaAyIqYdK0q/q0y0rw82INWEKJOBe6b/P3YWE8NW7oOlF/nXFNrHwhARrN/hdgDkraA==
   dependencies:
     undici-types "~6.21.0"
 
