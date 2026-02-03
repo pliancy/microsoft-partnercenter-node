@@ -3,14 +3,14 @@ import mockAxios from 'jest-mock-axios'
 import { AxiosInstance } from 'axios'
 import { GraphUserDefaultProperties } from './user.types'
 
-describe('Users', () => {
+describe('Applications', () => {
     let users: Users
 
     beforeEach(() => (users = new Users(mockAxios as unknown as AxiosInstance)))
 
     afterEach(() => mockAxios.reset())
 
-    it('creates an instance of Users', () => expect(users).toBeTruthy())
+    it('creates an instance of Applications', () => expect(users).toBeTruthy())
 
     describe('get', () => {
         it('gets a user by id or userPrincipalName (default)', async () => {
