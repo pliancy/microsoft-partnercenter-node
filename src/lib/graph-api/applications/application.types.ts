@@ -26,8 +26,8 @@ export interface AppServicePrincipal {
     userConsentDisplayName: string
     value: string
     displayName?: string
-    appRoles?: AppServicePrincipal[]
-    oauth2PermissionScopes?: AppServicePrincipal[]
+    appRoles?: { id: string; value: AppServicePrincipal }[]
+    oauth2PermissionScopes?: { id: string; value: AppServicePrincipal }[]
 }
 
 export interface GraphApplication {
@@ -100,16 +100,19 @@ export interface GraphApplication {
         homePageUrl: string
         logoutUrl: string
         redirectUris: string[]
-        implicitGrantSettings: { enableAccessTokenIssuance: false; enableIdTokenIssuance: false }
+        implicitGrantSettings: {
+            enableAccessTokenIssuance: boolean
+            enableIdTokenIssuance: boolean
+        }
         redirectUriSettings: { uri: string; index: number | null }[]
     }
     servicePrincipalLockConfiguration: {
-        isEnabled: true
-        allProperties: true
-        credentialsWithUsageVerify: true
-        credentialsWithUsageSign: true
-        identifierUris: false
-        tokenEncryptionKeyId: true
+        isEnabled: boolean
+        allProperties: boolean
+        credentialsWithUsageVerify: boolean
+        credentialsWithUsageSign: boolean
+        identifierUris: boolean
+        tokenEncryptionKeyId: boolean
     }
     spa: { redirectUris: string[] }
 }
