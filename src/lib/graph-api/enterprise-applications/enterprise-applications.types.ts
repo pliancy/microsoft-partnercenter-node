@@ -2,7 +2,6 @@ export interface ServicePrincipal {
     id: string // The unique UUID for the service principal object in the directory
     appId: string // The unique identifier for the associated application
     displayName: string
-    active: boolean
 
     // Identifiers
     appDisplayName?: string
@@ -29,7 +28,7 @@ export interface ServicePrincipal {
     notes?: string
 
     // Owners and Policy
-    preferredSingleSignOnMode?: 'saml' | 'password' | 'oath' | 'none'
+    preferredSingleSignOnMode?: 'saml' | 'password' | 'oauth' | 'none'
     preferredTokenSigningKeyThumbprint?: string
     samlSingleSignOnSettings?: SamlSingleSignOnSettings
 
@@ -66,6 +65,7 @@ export interface SamlSingleSignOnSettings {
 }
 
 export interface AppRoleAssignment {
+    id: string
     appRoleId: string
     resourceId: string
 }
