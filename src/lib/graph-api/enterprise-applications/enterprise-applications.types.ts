@@ -1,44 +1,50 @@
 export interface ServicePrincipal {
-    id: string // The unique UUID for the service principal object in the directory
-    appId: string // The unique identifier for the associated application
-    displayName: string
-
-    // Identifiers
-    appDisplayName?: string
-    appDescription?: string
-    servicePrincipalNames: string[]
-    replyUrls: string[]
-
-    // Enterprise App Specifics
-    accountEnabled: boolean
+    id: string
+    deletedDateTime?: Date
+    accountEnabled: true
     alternativeNames: string[]
-    appRoleAssignmentRequired: boolean
-    servicePrincipalType: 'Application' | 'ManagedIdentity' | 'Legacy'
-    tags: string[] // Often used for "WindowsAzureActiveDirectoryCustomSingleSignOnApplication"
-
-    // Permissions & Roles
-    appRoles: AppRole[]
-    oauth2PermissionScopes: PermissionScope[]
-
-    // Metadata
-    createdDateTime?: string
+    appDisplayName: string
+    appDescription?: string
+    appId: string
+    applicationTemplateId?: string
+    appOwnerOrganizationId: string
+    appRoleAssignmentRequired: false
+    createdByAppId?: string
+    createdDateTime: string
     description?: string
+    disabledByMicrosoftStatus?: string
+    displayName: string
     homepage?: string
+    loginUrl?: string
     logoutUrl?: string
     notes?: string
-
-    // Owners and Policy
-    preferredSingleSignOnMode?: 'saml' | 'password' | 'oauth' | 'none'
+    notificationEmailAddresses: []
+    preferredSingleSignOnMode?: string
     preferredTokenSigningKeyThumbprint?: string
+    replyUrls: string[]
+    servicePrincipalNames: string[]
+    servicePrincipalType: string
+    signInAudience: string
+    tags: string[]
+    tokenEncryptionKeyId?: string
     samlSingleSignOnSettings?: SamlSingleSignOnSettings
-
-    // Reference to the App in the tenant
-    info?: {
+    addIns: string[]
+    appRoles: AppRole[]
+    info: {
         logoUrl?: string
         marketingUrl?: string
         privacyStatementUrl?: string
         supportUrl?: string
         termsOfServiceUrl?: string
+    }
+    keyCredentials: string[]
+    oauth2PermissionScopes: string[]
+    passwordCredentials: string[]
+    resourceSpecificApplicationPermissions: string[]
+    verifiedPublisher: {
+        displayName?: string
+        verifiedPublisherId?: string
+        addedDateTime?: string
     }
 }
 
@@ -48,15 +54,6 @@ export interface AppRole {
     description: string
     displayName: string
     isEnabled: boolean
-    value: string
-}
-
-export interface PermissionScope {
-    id: string
-    adminConsentDescription: string
-    adminConsentDisplayName: string
-    isEnabled: boolean
-    type: 'User' | 'Admin'
     value: string
 }
 
