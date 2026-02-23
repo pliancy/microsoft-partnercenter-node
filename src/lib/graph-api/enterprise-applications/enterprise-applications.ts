@@ -10,7 +10,7 @@ export class EnterpriseApplications {
      * @param {string} appId - The application ID of the ServicePrincipal to retrieve.
      * @return {Promise<ServicePrincipal>} A promise that resolves to the ServicePrincipal object associated with the given appId. Returns null if no matching ServicePrincipal is found.
      */
-    async getByAppId(appId: string): Promise<ServicePrincipal> {
+    async getByAppId(appId: string): Promise<ServicePrincipal | null> {
         const { data: servicePrincipal } = await this.http.get(
             `servicePrincipals?$filter=appId eq '${appId}'`,
         )
