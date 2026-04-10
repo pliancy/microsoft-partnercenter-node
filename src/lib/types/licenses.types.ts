@@ -87,10 +87,10 @@ export interface PriceSheetEntry {
     UnitPrice: string
     PricingTierRangeMin?: string
     PricingTierRangeMax?: string
-    EffectiveStartDate: string | Date
-    EffectiveEndDate: string | Date
+    EffectiveStartDate: string
+    EffectiveEndDate: string
     Tags: string
-    'ERP Price': number
+    'ERP Price': string
     Segment: 'Commercial' | 'Government' | 'Education' | 'Charity'
 }
 
