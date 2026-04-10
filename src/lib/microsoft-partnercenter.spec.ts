@@ -262,6 +262,16 @@ describe('Microsoft Partner Center', () => {
     })
 
     describe('getPriceSheet', () => {
+        it('should fail given an unknown price sheet type', async () => {
+            jest.spyOn(axios, 'get')
+
+            await expect(partnerCenter.getPriceSheet('bad' as never)).rejects.toThrow(
+                'Unknown price sheet type: bad. Allowed values are: nce, legacy, eos.',
+            )
+
+            expect(axios.get).not.toHaveBeenCalled()
+        })
+
         it('should authenticate, fetch NCE stream, and return parsed CSV rows', async () => {
             const authenticate = jest
                 .spyOn((partnerCenter as any).tokenManager, 'authenticate')

@@ -349,9 +349,13 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
             case 'eos':
                 view = 'licensebasedeos'
                 break
-            default:
+            case 'legacy':
                 view = 'licensebasedest'
                 break
+            default:
+                throw new Error(
+                    `Unknown price sheet type: ${type}. Allowed values are: nce, legacy, eos.`,
+                )
         }
         return this.getSalesItem<PriceSheetEntry>(
             `pricesheets(Market='US',PricesheetView='${view}')/$value`,
