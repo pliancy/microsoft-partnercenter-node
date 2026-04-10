@@ -328,20 +328,20 @@ describe('Microsoft Partner Center', () => {
                 .spyOn((partnerCenter as any).tokenManager, 'authenticate')
                 .mockResolvedValue(partnerMicrosoftAuth)
             const csvContent = 'Sku,Revenue\nS1,5\n'
-            jest.mocked(axios).mockResolvedValue({ data: Readable.from([csvContent]) })
+            jest.spyOn(axios, 'get').mockResolvedValue({ data: Readable.from([csvContent]) })
 
             const result = await partnerCenter.getOfferMatrix()
 
             expect(authenticate).toHaveBeenCalledWith('https://api.partner.microsoft.com/.default')
-            expect(axios).toHaveBeenCalledWith({
-                method: 'get',
-                url: "https://api.partner.microsoft.com/v1.0/sales/offermatrix(Month='202604')/$value",
-                headers: {
-                    Authorization: 'Bearer test-partner-api-token',
-                    'Accept-Encoding': 'gzip, deflate',
-                },
-                responseType: 'stream',
-            })
+            expect(axios.get).toHaveBeenCalledWith(
+                "https://api.partner.microsoft.com/v1.0/sales/offermatrix(Month='202604')/$value",
+                expect.objectContaining({
+                    responseType: 'stream',
+                    headers: expect.objectContaining({
+                        Authorization: 'Bearer test-partner-api-token',
+                    }),
+                }),
+            )
             expect(result).toEqual([{ Sku: 'S1', Revenue: '5' }])
         })
     })

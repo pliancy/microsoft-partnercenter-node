@@ -17,9 +17,9 @@ import { OrderLineItem, OrderLineItemOptions, OrderResponse } from './types/orde
 import { Sku } from './types/sku.types'
 import { Subscription } from './types/subscriptions.types'
 import {
-    LicenseUsage,
     LicenseAssignmentRequest,
     LicenseAssignmentResponse,
+    LicenseUsage,
     UserLicenseAssignment,
 } from './types/licenses.types'
 import { MicrosoftApiBase } from './microsoft-api-base'
@@ -340,31 +340,22 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
      * @return {Promise<PriceSheetEntry[]>} A promise that resolves to an array of price sheet entries.
      */
     async getPriceSheet(type: 'nce' | 'legacy' | 'eos'): Promise<PriceSheetEntry[]> {
-        // This api call needs a different resource see: https://github.com/microsoft/Partner-Center-PowerShell/issues/405
-        const tokenManager = this.tokenManager
-        const auth = await tokenManager.authenticate('https://api.partner.microsoft.com/.default')
         // Use separate axios call, since we don't want the unique access token to be used in the main httpAgent
-        const view =
-            type === 'nce'
-                ? 'updatedlicensebased'
-                : type === 'eos'
-                  ? 'licensebasedeos'
-                  : 'licensebasedest'
-        const { data } = await axios.get(
-            `https://api.partner.microsoft.com/v1.0/sales/pricesheets(Market='US',PricesheetView='${view}')/$value`,
-            {
-                responseType: 'stream',
-                headers: {
-                    Authorization: `Bearer ${auth.access_token}`,
-                    'Accept-Encoding': 'gzip, deflate',
-                },
-            },
+        let view: string
+        switch (type) {
+            case 'nce':
+                view = 'updatedlicensebased'
+                break
+            case 'eos':
+                view = 'licensebasedeos'
+                break
+            default:
+                view = 'licensebasedest'
+                break
+        }
+        return this.getSalesItem<PriceSheetEntry>(
+            `pricesheets(Market='US',PricesheetView='${view}')/$value`,
         )
-
-        return await data
-            .pipe(ParseOne())
-            .pipe(csv())
-            .then((json: PriceSheetEntry[]) => json)
     }
 
     /**
@@ -374,27 +365,9 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
      * @return {Promise<OfferMatrixEntry[]>} A promise that resolves to an array of offer matrix entries.
      */
     async getOfferMatrix(): Promise<OfferMatrixEntry[]> {
-        // This api call needs a different resource see: https://github.com/microsoft/Partner-Center-PowerShell/issues/405
-        const tokenManager = this.tokenManager
-        const baseUrl = 'https://api.partner.microsoft.com'
-        const auth = await tokenManager.authenticate(`${baseUrl}/.default`)
         const date = new Date()
         const month = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}`
-
-        const { data } = await axios({
-            method: 'get',
-            url: `${baseUrl}/v1.0/sales/offermatrix(Month='${month}')/$value`,
-            headers: {
-                Authorization: `Bearer ${auth.access_token}`,
-                'Accept-Encoding': 'gzip, deflate', // Files can be large/compressed
-            },
-            responseType: 'stream',
-        })
-
-        return await data
-            .pipe(ParseOne())
-            .pipe(csv())
-            .then((json: OfferMatrixEntry[]) => json)
+        return this.getSalesItem<OfferMatrixEntry>(`offermatrix(Month='${month}')/$value`)
     }
 
     /**
@@ -412,5 +385,24 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         })
 
         return csv().fromString(data)
+    }
+
+    private async getSalesItem<T>(path: string): Promise<T[]> {
+        // This api call needs a different resource see: https://github.com/microsoft/Partner-Center-PowerShell/issues/405
+        const baseUrl = 'https://api.partner.microsoft.com'
+        const tokenManager = this.tokenManager
+        const auth = await tokenManager.authenticate(`${baseUrl}/.default`)
+        const { data } = await axios.get(`${baseUrl}/v1.0/sales/${path}`, {
+            responseType: 'stream',
+            headers: {
+                Authorization: `Bearer ${auth.access_token}`,
+                'Accept-Encoding': 'gzip, deflate',
+            },
+        })
+
+        return await data
+            .pipe(ParseOne())
+            .pipe(csv())
+            .then((json: T[]) => json)
     }
 }
