@@ -70,3 +70,4 @@ export type AuthScope =
     | 'https://graph.microsoft.com/.default'
     | 'https://api.partnercenter.microsoft.com/.default'
     | 'https://api.partner.microsoft.com/.default'
+    | 'https://api.partner.microsoft.com'

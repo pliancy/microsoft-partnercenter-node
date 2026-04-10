@@ -1,6 +1,9 @@
 import {
     ApplicationConsent,
     CreateUser,
+    OfferMatrixEntry,
+    PlanIdentifierEntry,
+    PriceSheetEntry,
     SetUserRole,
     SetUserRoleResponse,
     User,
@@ -21,6 +24,8 @@ import {
 } from './types/licenses.types'
 import { MicrosoftApiBase } from './microsoft-api-base'
 import axios from 'axios'
+import { ParseOne } from 'unzipper'
+import { csv } from 'csvtojson'
 
 export class MicrosoftPartnerCenter extends MicrosoftApiBase {
     constructor(config: IPartnerCenterConfig) {
@@ -325,27 +330,87 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
     }
 
     /**
-     *  Gets price sheet for market, default is US and nce license based
-     * https://learn.microsoft.com/en-us/partner-center/developer/get-a-price-sheet
-     * @param  market - Market code
-     * @param  priceSheetView - Price sheet view
-     * @returns Price sheet as a buffer - Which is either a csv or compressed csv
+     * Fetches the price sheet based on the specified type.
+     * This method retrieves data from the Microsoft Partner Center API and processes it into a JSON format.
+     *
+     * @param {('nce'|'legacy'|'eos')} type - The type of price sheet to retrieve. Accepted values are:
+     *   - 'nce': Updated license-based price sheet.
+     *   - 'legacy': License-based estimate price sheet.
+     *   - 'eos': End-of-service license-based price sheet.
+     * @return {Promise<PriceSheetEntry[]>} A promise that resolves to an array of price sheet entries.
      */
-    async getPriceSheet(market = 'US', priceSheetView = 'updatedlicensebased'): Promise<Buffer> {
+    async getPriceSheet(type: 'nce' | 'legacy' | 'eos'): Promise<PriceSheetEntry[]> {
         // This api call needs a different resource see: https://github.com/microsoft/Partner-Center-PowerShell/issues/405
         const tokenManager = this.tokenManager
         const auth = await tokenManager.authenticate('https://api.partner.microsoft.com/.default')
         // Use separate axios call, since we don't want the unique access token to be used in the main httpAgent
+        const view =
+            type === 'nce'
+                ? 'updatedlicensebased'
+                : type === 'eos'
+                  ? 'licensebasedeos'
+                  : 'licensebasedest'
         const { data } = await axios.get(
-            `https://api.partner.microsoft.com/v1.0/sales/pricesheets(Market='${market}',PricesheetView='${priceSheetView}')/$value`,
+            `https://api.partner.microsoft.com/v1.0/sales/pricesheets(Market='US',PricesheetView='${view}')/$value`,
             {
-                responseType: 'arraybuffer',
+                responseType: 'stream',
                 headers: {
                     Authorization: `Bearer ${auth.access_token}`,
-                    'Accept-Encoding': 'deflate',
+                    'Accept-Encoding': 'gzip, deflate',
                 },
             },
         )
-        return data
+
+        return await data
+            .pipe(ParseOne())
+            .pipe(csv())
+            .then((json: PriceSheetEntry[]) => json)
+    }
+
+    /**
+     * Retrieves the offer matrix for the current month from the Microsoft Partner Center API.
+     * The offer matrix provides detailed sales data specific to the authenticated partner.
+     *
+     * @return {Promise<OfferMatrixEntry[]>} A promise that resolves to an array of offer matrix entries.
+     */
+    async getOfferMatrix(): Promise<OfferMatrixEntry[]> {
+        // This api call needs a different resource see: https://github.com/microsoft/Partner-Center-PowerShell/issues/405
+        const tokenManager = this.tokenManager
+        const baseUrl = 'https://api.partner.microsoft.com'
+        const auth = await tokenManager.authenticate(`${baseUrl}/.default`)
+        const date = new Date()
+        const month = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}`
+
+        const { data } = await axios({
+            method: 'get',
+            url: `${baseUrl}/v1.0/sales/offermatrix(Month='${month}')/$value`,
+            headers: {
+                Authorization: `Bearer ${auth.access_token}`,
+                'Accept-Encoding': 'gzip, deflate', // Files can be large/compressed
+            },
+            responseType: 'stream',
+        })
+
+        return await data
+            .pipe(ParseOne())
+            .pipe(csv())
+            .then((json: OfferMatrixEntry[]) => json)
+    }
+
+    /**
+     * Fetches plan identifiers from a remote CSV file and parses the content into a list of plan identifier entries.
+     *
+     * @return {Promise<PlanIdentifierEntry[]>} A promise that resolves to an array of plan identifier entries parsed from the CSV file.
+     */
+    async getPlanIdentifiers(): Promise<PlanIdentifierEntry[]> {
+        const { data } = await axios({
+            method: 'get',
+            url: 'https://download.microsoft.com/download/e/3/e/e3e9faf2-f28b-490a-9ada-c6089a1fc5b0/Product%20names%20and%20service%20plan%20identifiers%20for%20licensing.csv',
+            headers: {
+                'Accept-Encoding': 'text/csv',
+            },
+        })
+
+        return csv().fromString(data)
     }
 }
