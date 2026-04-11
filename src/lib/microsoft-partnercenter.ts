@@ -332,14 +332,11 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
     }
 
     /**
-     * Fetches the price sheet based on the specified type.
-     * This method retrieves data from the Microsoft Partner Center API and processes it into a JSON format.
+     * Retrieves the price sheet entries for the specified price type.
      *
-     * @param {('nce'|'legacy'|'eos')} type - The type of price sheet to retrieve. Accepted values are:
-     *   - 'nce': Updated license-based price sheet.
-     *   - 'legacy': License-based estimate price sheet.
-     *   - 'eos': End-of-service license-based price sheet.
-     * @return {Promise<PriceSheetEntry[]>} A promise that resolves to an array of price sheet entries.
+     * @param {PriceType} type - The type of the price sheet to retrieve. Must be a valid key present in the PriceTypeMap.
+     * @return {Promise<PriceSheetEntry[]>} A promise that resolves to an array of PriceSheetEntry objects.
+     * @throws {Error} If the provided price type is invalid or not found in PriceTypeMap.
      */
     async getPriceSheet(type: PriceType): Promise<PriceSheetEntry[]> {
         const view = PriceTypeMap.get(type)
@@ -381,6 +378,13 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         return csv().fromString(data)
     }
 
+    /**
+     * Retrieves sales items from the Microsoft Partner API for the specified path, unzips the response,
+     * and returns parsed JSON
+     *
+     * @param {string} path - The endpoint path to fetch sales items from.
+     * @return {Promise<T[]>} A promise that resolves to an array of sales item objects of type T.
+     */
     private async getSalesItem<T>(path: string): Promise<T[]> {
         // This api call needs a different resource see: https://github.com/microsoft/Partner-Center-PowerShell/issues/405
         const baseUrl = 'https://api.partner.microsoft.com'
