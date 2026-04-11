@@ -288,7 +288,7 @@ describe('Microsoft Partner Center', () => {
                     headers: {
                         Authorization: 'Bearer test-partner-api-token',
                     },
-                    responseType: 'arraybuffer',
+                    responseType: 'stream',
                 },
             )
             expect(result).toEqual([{ OfferId: 'O1', Price: '99' }])
@@ -346,7 +346,7 @@ describe('Microsoft Partner Center', () => {
             expect(axios.get).toHaveBeenCalledWith(
                 "https://api.partner.microsoft.com/v1.0/sales/offermatrix(Month='202604')/$value",
                 expect.objectContaining({
-                    responseType: 'arraybuffer',
+                    responseType: 'stream',
                     headers: expect.objectContaining({
                         Authorization: 'Bearer test-partner-api-token',
                     }),
