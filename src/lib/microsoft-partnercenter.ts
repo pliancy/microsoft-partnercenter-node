@@ -394,7 +394,7 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
             responseType: 'stream',
             headers: {
                 Authorization: `Bearer ${auth.access_token}`,
-                'Accept-Encoding': 'gzip, deflate',
+                responseType: 'arraybuffer',
             },
         })
 
