@@ -391,10 +391,9 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         const tokenManager = this.tokenManager
         const auth = await tokenManager.authenticate(`${baseUrl}/.default`)
         const { data } = await axios.get(`${baseUrl}/v1.0/sales/${path}`, {
-            responseType: 'stream',
+            responseType: 'arraybuffer',
             headers: {
                 Authorization: `Bearer ${auth.access_token}`,
-                responseType: 'arraybuffer',
             },
         })
 

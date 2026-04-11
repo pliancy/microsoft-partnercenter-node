@@ -284,12 +284,12 @@ describe('Microsoft Partner Center', () => {
             expect(authenticate).toHaveBeenCalledWith('https://api.partner.microsoft.com/.default')
             expect(axios.get).toHaveBeenCalledWith(
                 "https://api.partner.microsoft.com/v1.0/sales/pricesheets(Market='US',PricesheetView='updatedlicensebased')/$value",
-                expect.objectContaining({
-                    responseType: 'stream',
-                    headers: expect.objectContaining({
+                {
+                    headers: {
                         Authorization: 'Bearer test-partner-api-token',
-                    }),
-                }),
+                    },
+                    responseType: 'arraybuffer',
+                },
             )
             expect(result).toEqual([{ OfferId: 'O1', Price: '99' }])
         })
@@ -346,7 +346,7 @@ describe('Microsoft Partner Center', () => {
             expect(axios.get).toHaveBeenCalledWith(
                 "https://api.partner.microsoft.com/v1.0/sales/offermatrix(Month='202604')/$value",
                 expect.objectContaining({
-                    responseType: 'stream',
+                    responseType: 'arraybuffer',
                     headers: expect.objectContaining({
                         Authorization: 'Bearer test-partner-api-token',
                     }),
