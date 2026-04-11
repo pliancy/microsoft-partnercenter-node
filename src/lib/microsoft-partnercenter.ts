@@ -4,6 +4,8 @@ import {
     OfferMatrixEntry,
     PlanIdentifierEntry,
     PriceSheetEntry,
+    PriceType,
+    PriceTypeMap,
     SetUserRole,
     SetUserRoleResponse,
     User,
@@ -339,24 +341,12 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
      *   - 'eos': End-of-service license-based price sheet.
      * @return {Promise<PriceSheetEntry[]>} A promise that resolves to an array of price sheet entries.
      */
-    async getPriceSheet(type: 'nce' | 'legacy' | 'eos'): Promise<PriceSheetEntry[]> {
-        // Use separate axios call, since we don't want the unique access token to be used in the main httpAgent
-        let view: string
-        switch (type) {
-            case 'nce':
-                view = 'updatedlicensebased'
-                break
-            case 'eos':
-                view = 'licensebasedeos'
-                break
-            case 'legacy':
-                view = 'licensebasedest'
-                break
-            default:
-                throw new Error(
-                    `Unknown price sheet type: ${type}. Allowed values are: nce, legacy, eos.`,
-                )
-        }
+    async getPriceSheet(type: PriceType): Promise<PriceSheetEntry[]> {
+        const view = PriceTypeMap.get(type)
+        if (!view)
+            throw new Error(
+                `Invalid price type: ${type}. Expected one of: ${Array.from(PriceTypeMap.keys()).join(', ')}`,
+            )
         return this.getSalesItem<PriceSheetEntry>(
             `pricesheets(Market='US',PricesheetView='${view}')/$value`,
         )

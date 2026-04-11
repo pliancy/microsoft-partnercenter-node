@@ -266,7 +266,7 @@ describe('Microsoft Partner Center', () => {
             jest.spyOn(axios, 'get')
 
             await expect(partnerCenter.getPriceSheet('bad' as never)).rejects.toThrow(
-                'Unknown price sheet type: bad. Allowed values are: nce, legacy, eos.',
+                'Invalid price type: bad. Expected one of: NewCommerceExperience, ExtendedServiceTerm, EndOfSupport',
             )
 
             expect(axios.get).not.toHaveBeenCalled()
@@ -279,7 +279,7 @@ describe('Microsoft Partner Center', () => {
             const csvContent = 'OfferId,Price\nO1,99\n'
             jest.spyOn(axios, 'get').mockResolvedValue({ data: Readable.from([csvContent]) })
 
-            const result = await partnerCenter.getPriceSheet('nce')
+            const result = await partnerCenter.getPriceSheet('NewCommerceExperience')
 
             expect(authenticate).toHaveBeenCalledWith('https://api.partner.microsoft.com/.default')
             expect(axios.get).toHaveBeenCalledWith(
@@ -300,7 +300,7 @@ describe('Microsoft Partner Center', () => {
             )
             jest.spyOn(axios, 'get').mockResolvedValue({ data: Readable.from(['Id\n1\n']) })
 
-            await partnerCenter.getPriceSheet('legacy')
+            await partnerCenter.getPriceSheet('ExtendedServiceTerm')
 
             expect(axios.get).toHaveBeenCalledWith(
                 expect.stringContaining("PricesheetView='licensebasedest'"),
@@ -314,7 +314,7 @@ describe('Microsoft Partner Center', () => {
             )
             jest.spyOn(axios, 'get').mockResolvedValue({ data: Readable.from(['Id\n1\n']) })
 
-            await partnerCenter.getPriceSheet('eos')
+            await partnerCenter.getPriceSheet('EndOfSupport')
 
             expect(axios.get).toHaveBeenCalledWith(
                 expect.stringContaining("PricesheetView='licensebasedeos'"),
