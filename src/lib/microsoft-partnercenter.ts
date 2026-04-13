@@ -1,26 +1,35 @@
 import {
     ApplicationConsent,
+    Availability,
+    CreateCustomer,
     CreateUser,
-    SetUserRole,
-    SetUserRoleResponse,
-    User,
-    UserRole,
-} from './types'
-import { Availability } from './types/availabilities.types'
-import { IPartnerCenterConfig } from './types/common.types'
-import { CreateCustomer, Customer } from './types/customers.types'
-import { Invoice } from './types/invoices.types'
-import { OrderLineItem, OrderLineItemOptions, OrderResponse } from './types/orders.types'
-import { Sku } from './types/sku.types'
-import { Subscription } from './types/subscriptions.types'
-import {
-    LicenseUsage,
+    Customer,
+    Invoice,
+    IPartnerCenterConfig,
     LicenseAssignmentRequest,
     LicenseAssignmentResponse,
+    LicenseUsage,
+    OfferMatrixEntry,
+    OrderLineItem,
+    OrderLineItemOptions,
+    OrderResponse,
+    PlanIdentifierEntry,
+    PriceSheetEntry,
+    PriceType,
+    PriceTypeMap,
+    SetUserRole,
+    SetUserRoleResponse,
+    Sku,
+    Subscription,
+    User,
     UserLicenseAssignment,
-} from './types/licenses.types'
+    UserRole,
+} from './types'
 import { MicrosoftApiBase } from './microsoft-api-base'
 import axios from 'axios'
+import { ParseOne } from 'unzipper'
+import { csv } from 'csvtojson'
+import { pipeline } from 'stream/promises'
 
 export class MicrosoftPartnerCenter extends MicrosoftApiBase {
     constructor(config: IPartnerCenterConfig) {
@@ -325,27 +334,83 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
     }
 
     /**
-     *  Gets price sheet for market, default is US and nce license based
-     * https://learn.microsoft.com/en-us/partner-center/developer/get-a-price-sheet
-     * @param  market - Market code
-     * @param  priceSheetView - Price sheet view
-     * @returns Price sheet as a buffer - Which is either a csv or compressed csv
+     * Retrieves the price sheet entries for the specified price type.
+     *
+     * @param {PriceType} type - The type of the price sheet to retrieve. Must be a valid key present in the PriceTypeMap.
+     * @param market
+     * @return {Promise<PriceSheetEntry[]>} A promise that resolves to an array of PriceSheetEntry objects.
+     * @throws {Error} If the provided price type is invalid or not found in PriceTypeMap.
      */
-    async getPriceSheet(market = 'US', priceSheetView = 'updatedlicensebased'): Promise<Buffer> {
-        // This api call needs a different resource see: https://github.com/microsoft/Partner-Center-PowerShell/issues/405
-        const tokenManager = this.tokenManager
-        const auth = await tokenManager.authenticate('https://api.partner.microsoft.com/.default')
-        // Use separate axios call, since we don't want the unique access token to be used in the main httpAgent
-        const { data } = await axios.get(
-            `https://api.partner.microsoft.com/v1.0/sales/pricesheets(Market='${market}',PricesheetView='${priceSheetView}')/$value`,
-            {
-                responseType: 'arraybuffer',
-                headers: {
-                    Authorization: `Bearer ${auth.access_token}`,
-                    'Accept-Encoding': 'deflate',
-                },
-            },
+    async getPriceSheet(type: PriceType, market = 'US'): Promise<PriceSheetEntry[]> {
+        const view = PriceTypeMap.get(type)
+        if (!view)
+            throw new Error(
+                `Invalid price type: ${type}. Expected one of: ${Array.from(PriceTypeMap.keys()).join(', ')}`,
+            )
+        return this.getSalesItem<PriceSheetEntry>(
+            `pricesheets(Market='${market}',PricesheetView='${view}')/$value`,
         )
-        return data
+    }
+
+    /**
+     * Retrieves the offer matrix for the current month from the Microsoft Partner Center API.
+     * The offer matrix provides detailed sales data specific to the authenticated partner.
+     *
+     * @return {Promise<OfferMatrixEntry[]>} A promise that resolves to an array of offer matrix entries.
+     */
+    async getOfferMatrix(): Promise<OfferMatrixEntry[]> {
+        const date = new Date()
+        const month = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}`
+        return this.getSalesItem<OfferMatrixEntry>(`offermatrix(Month='${month}')/$value`)
+    }
+
+    /**
+     * Fetches plan identifiers from a remote CSV file and parses the content into a list of plan identifier entries.
+     *
+     * @return {Promise<PlanIdentifierEntry[]>} A promise that resolves to an array of plan identifier entries parsed from the CSV file.
+     */
+    async getPlanIdentifiers(): Promise<PlanIdentifierEntry[]> {
+        const { data } = await axios({
+            method: 'get',
+            url: 'https://download.microsoft.com/download/e/3/e/e3e9faf2-f28b-490a-9ada-c6089a1fc5b0/Product%20names%20and%20service%20plan%20identifiers%20for%20licensing.csv',
+            responseType: 'text',
+            headers: {
+                Accept: 'text/csv',
+            },
+        })
+
+        return csv().fromString(data)
+    }
+
+    /**
+     * Retrieves sales items from the Microsoft Partner API for the specified path, unzips the response,
+     * and returns parsed JSON
+     *
+     * @param {string} path - The endpoint path to fetch sales items from.
+     * @return {Promise<T[]>} A promise that resolves to an array of sales item objects of type T.
+     */
+    private async getSalesItem<T>(path: string): Promise<T[]> {
+        // This api call needs a different resource see: https://github.com/microsoft/Partner-Center-PowerShell/issues/405
+        const baseUrl = 'https://api.partner.microsoft.com'
+        const tokenManager = this.tokenManager
+        const auth = await tokenManager.authenticate(`${baseUrl}/.default`)
+        const { data } = await axios.get(`${baseUrl}/v1.0/sales/${path}`, {
+            responseType: 'stream',
+            headers: {
+                Authorization: `Bearer ${auth.access_token}`,
+            },
+        })
+
+        const json: T[] = []
+
+        await pipeline(
+            data,
+            ParseOne(),
+            csv().subscribe((row: T) => {
+                json.push(row)
+            }),
+        )
+
+        return json
     }
 }
