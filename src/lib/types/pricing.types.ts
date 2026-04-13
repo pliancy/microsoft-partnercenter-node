@@ -23,7 +23,7 @@ export interface PriceSheetEntry {
     Publisher: string
     SkuDescription: string
     UnitOfMeasure: string
-    TermDuration: 'P1M' | 'P1Y'
+    TermDuration: 'P1M' | 'P1Y' | 'P3Y' | 'P5Y' | 'NoTerm'
     BillingPlan: 'Annual' | 'Monthly'
     Market: string
     Currency: string
