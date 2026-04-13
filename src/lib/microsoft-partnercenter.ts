@@ -337,17 +337,18 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
      * Retrieves the price sheet entries for the specified price type.
      *
      * @param {PriceType} type - The type of the price sheet to retrieve. Must be a valid key present in the PriceTypeMap.
+     * @param market
      * @return {Promise<PriceSheetEntry[]>} A promise that resolves to an array of PriceSheetEntry objects.
      * @throws {Error} If the provided price type is invalid or not found in PriceTypeMap.
      */
-    async getPriceSheet(type: PriceType): Promise<PriceSheetEntry[]> {
+    async getPriceSheet(type: PriceType, market = 'US'): Promise<PriceSheetEntry[]> {
         const view = PriceTypeMap.get(type)
         if (!view)
             throw new Error(
                 `Invalid price type: ${type}. Expected one of: ${Array.from(PriceTypeMap.keys()).join(', ')}`,
             )
         return this.getSalesItem<PriceSheetEntry>(
-            `pricesheets(Market='US',PricesheetView='${view}')/$value`,
+            `pricesheets(Market='${market}',PricesheetView='${view}')/$value`,
         )
     }
 
@@ -372,6 +373,7 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         const { data } = await axios({
             method: 'get',
             url: 'https://download.microsoft.com/download/e/3/e/e3e9faf2-f28b-490a-9ada-c6089a1fc5b0/Product%20names%20and%20service%20plan%20identifiers%20for%20licensing.csv',
+            responseType: 'text',
             headers: {
                 Accept: 'text/csv',
             },
