@@ -6,11 +6,11 @@
     }
   },
   "dependencies": {
-    "axios": "1.13.5",
-    "csvtojson": "^2.0.14",
+    "axios": "1.15.0",
+    "csvtojson": "2.0.14",
     "jsonwebtoken": "9.0.3",
     "tslib": "2.8.1",
-    "unzipper": "^0.12.3"
+    "unzipper": "0.12.3"
   },
   "description": "",
   "devDependencies": {
