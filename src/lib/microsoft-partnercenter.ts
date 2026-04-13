@@ -1,33 +1,35 @@
 import {
     ApplicationConsent,
+    Availability,
+    CreateCustomer,
     CreateUser,
+    Customer,
+    Invoice,
+    IPartnerCenterConfig,
+    LicenseAssignmentRequest,
+    LicenseAssignmentResponse,
+    LicenseUsage,
     OfferMatrixEntry,
+    OrderLineItem,
+    OrderLineItemOptions,
+    OrderResponse,
     PlanIdentifierEntry,
     PriceSheetEntry,
     PriceType,
     PriceTypeMap,
     SetUserRole,
     SetUserRoleResponse,
+    Sku,
+    Subscription,
     User,
+    UserLicenseAssignment,
     UserRole,
 } from './types'
-import { Availability } from './types/availabilities.types'
-import { IPartnerCenterConfig } from './types/common.types'
-import { CreateCustomer, Customer } from './types/customers.types'
-import { Invoice } from './types/invoices.types'
-import { OrderLineItem, OrderLineItemOptions, OrderResponse } from './types/orders.types'
-import { Sku } from './types/sku.types'
-import { Subscription } from './types/subscriptions.types'
-import {
-    LicenseAssignmentRequest,
-    LicenseAssignmentResponse,
-    LicenseUsage,
-    UserLicenseAssignment,
-} from './types/licenses.types'
 import { MicrosoftApiBase } from './microsoft-api-base'
 import axios from 'axios'
 import { ParseOne } from 'unzipper'
 import { csv } from 'csvtojson'
+import { pipeline } from 'stream/promises'
 
 export class MicrosoftPartnerCenter extends MicrosoftApiBase {
     constructor(config: IPartnerCenterConfig) {
@@ -397,9 +399,16 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
             },
         })
 
-        return await data
-            .pipe(ParseOne())
-            .pipe(csv())
-            .then((json: T[]) => json)
+        const json: T[] = []
+
+        await pipeline(
+            data,
+            ParseOne(),
+            csv().subscribe((row: T) => {
+                json.push(row)
+            }),
+        )
+
+        return json
     }
 }
