@@ -43,7 +43,7 @@
   ],
   "license": "MIT",
   "main": "dist/index.js",
-  "name": "microsoft-partnercenter",
+  "name": "@pliancy/microsoft-partnercenter",
   "repository": {
     "type": "git",
     "url": "https://github.com/pliancy/microsoft-partnercenter-node"
