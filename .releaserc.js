@@ -9,15 +9,16 @@ const dateArgs = {
 const message = `Release: <%= nextRelease.version %> - <%= new Date().toLocaleDateString('en-US', ${dateArgs}) %> [skip ci]`
 
 module.exports = {
+  extends: '@pliancy/semantic-release-config-npm',
   branches: ['main', 'master', {
-      name: 'beta',
-      prerelease: true
-    }],
+    name: 'beta',
+    prerelease: true,
+  }],
   plugins: [
-      '@semantic-release/commit-analyzer',
-      '@semantic-release/release-notes-generator',
-      ['@semantic-release/git', { message }],
-      '@semantic-release/github',
-      ['@semantic-release/npm'],
+    '@semantic-release/commit-analyzer',
+    '@semantic-release/release-notes-generator',
+    ['@semantic-release/git', { message }],
+    '@semantic-release/github',
+    ['@semantic-release/npm'],
   ],
 }
