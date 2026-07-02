@@ -1,4 +1,5 @@
 import { AxiosInstance } from 'axios'
+import { getPagedGraphCollection } from '../pagination'
 import {
     CreateGDAPAccessAssignment,
     CreateGDAPRelationship,
@@ -32,8 +33,10 @@ export class Gdap {
      * @returns
      */
     async getAllGDAPRelationships(): Promise<GDAPRelationship[]> {
-        const { data } = await this.http.get('/tenantRelationships/delegatedAdminRelationships')
-        return data.value
+        return getPagedGraphCollection(
+            this.http,
+            '/tenantRelationships/delegatedAdminRelationships',
+        )
     }
 
     /**
@@ -56,17 +59,20 @@ export class Gdap {
      * @returns
      */
     async getGDAPRelationshipsByCustomerId(customerId: string): Promise<GDAPRelationship[]> {
-        const { data } = await this.http.get('/tenantRelationships/delegatedAdminRelationships', {
-            params: {
-                $filter: encodeURIComponent(`customer/tenantId eq '${customerId}'`),
+        return getPagedGraphCollection(
+            this.http,
+            '/tenantRelationships/delegatedAdminRelationships',
+            {
+                params: {
+                    $filter: encodeURIComponent(`customer/tenantId eq '${customerId}'`),
+                },
+                paramsSerializer: (params) => {
+                    return Object.entries(params)
+                        .map(([key, value]) => `${key}=${value}`)
+                        .join('&')
+                },
             },
-            paramsSerializer: (params) => {
-                return Object.entries(params)
-                    .map(([key, value]) => `${key}=${value}`)
-                    .join('&')
-            },
-        })
-        return data.value
+        )
     }
 
     /**
@@ -128,10 +134,10 @@ export class Gdap {
     async getAllGDAPRelationshipRequests(
         gdapRelationshipId: string,
     ): Promise<GDAPRelationshipRequest[]> {
-        const { data } = await this.http.get(
+        return getPagedGraphCollection(
+            this.http,
             `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}/requests`,
         )
-        return data.value
     }
 
     /**
@@ -176,10 +182,10 @@ export class Gdap {
      * @returns
      */
     async getAllGDAPAccessAssignments(gdapRelationshipId: string): Promise<GDAPAccessAssignment[]> {
-        const { data } = await this.http.get(
+        return getPagedGraphCollection(
+            this.http,
             `/tenantRelationships/delegatedAdminRelationships/${gdapRelationshipId}/accessAssignments`,
         )
-        return data.value
     }
 
     /**
