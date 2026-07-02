@@ -1,5 +1,6 @@
 import { AxiosInstance } from 'axios'
 import { Domain, DomainDnsRecord } from '../../types'
+import { getPagedGraphCollection } from '../pagination'
 
 export class Domains {
     constructor(private readonly http: AxiosInstance) {}
@@ -21,8 +22,7 @@ export class Domains {
      * @returns An array of Domain objects
      */
     async getAllDomains(): Promise<Domain[]> {
-        const { data } = await this.http.get('/domains')
-        return data.value
+        return getPagedGraphCollection(this.http, '/domains')
     }
 
     /**
@@ -75,7 +75,6 @@ export class Domains {
      * @returns An array of DomainDnsRecord objects
      */
     async getDomainVerificationDnsRecords(domainId: string): Promise<DomainDnsRecord[]> {
-        const { data } = await this.http.get(`/domains/${domainId}/verificationDnsRecords`)
-        return data.value
+        return getPagedGraphCollection(this.http, `/domains/${domainId}/verificationDnsRecords`)
     }
 }

@@ -1,4 +1,5 @@
 import { AxiosInstance } from 'axios'
+import { getPagedGraphCollection } from '../pagination'
 import { AppRoleAssignment, ServicePrincipal } from './enterprise-applications.types'
 
 export class EnterpriseApplications {
@@ -11,10 +12,11 @@ export class EnterpriseApplications {
      * @return {Promise<ServicePrincipal>} A promise that resolves to the ServicePrincipal object associated with the given appId. Returns null if no matching ServicePrincipal is found.
      */
     async getByAppId(appId: string): Promise<ServicePrincipal | null> {
-        const { data: servicePrincipal } = await this.http.get(
+        const servicePrincipals = await getPagedGraphCollection<ServicePrincipal>(
+            this.http,
             `servicePrincipals?$filter=appId eq '${appId}'`,
         )
-        return servicePrincipal?.value?.[0] ?? null
+        return servicePrincipals[0] ?? null
     }
 
     /**
@@ -24,10 +26,10 @@ export class EnterpriseApplications {
      * @return {Promise<AppRoleAssignment[]>} A promise that resolves to an array of app role assignments associated with the specified principal.
      */
     async getAppRoleAssignments(principalId: string): Promise<AppRoleAssignment[]> {
-        const { data: appRoleAssignments } = await this.http.get(
+        return getPagedGraphCollection(
+            this.http,
             `servicePrincipals/${principalId}/appRoleAssignments`,
         )
-        return appRoleAssignments.value ?? []
     }
 
     /**

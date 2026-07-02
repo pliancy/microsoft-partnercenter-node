@@ -70,6 +70,36 @@ describe('Gdap', () => {
         )
     })
 
+    it('should get GDAP relationships by customer ID from all pages', async () => {
+        const firstPage: GDAPRelationship[] = [{ id: '1' }] as GDAPRelationship[]
+        const secondPage: GDAPRelationship[] = [{ id: '2' }] as GDAPRelationship[]
+        const nextLink =
+            'https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships?$skiptoken=abc'
+        jest.spyOn(mockAxios, 'get')
+            .mockResolvedValueOnce({
+                data: {
+                    value: firstPage,
+                    '@odata.nextLink': nextLink,
+                },
+            })
+            .mockResolvedValueOnce({ data: { value: secondPage } })
+
+        const result = await gdap.getGDAPRelationshipsByCustomerId('customerId')
+
+        expect(result).toEqual([...firstPage, ...secondPage])
+        expect(mockAxios.get).toHaveBeenNthCalledWith(
+            1,
+            '/tenantRelationships/delegatedAdminRelationships',
+            {
+                params: {
+                    $filter: encodeURIComponent("customer/tenantId eq 'customerId'"),
+                },
+                paramsSerializer: expect.any(Function),
+            },
+        )
+        expect(mockAxios.get).toHaveBeenNthCalledWith(2, nextLink)
+    })
+
     it('should update a GDAP relationship', async () => {
         const updatedRelationship: GDAPRelationship = {
             id: '1',
