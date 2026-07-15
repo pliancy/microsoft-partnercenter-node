@@ -71,3 +71,4 @@ export type AuthScope =
     | 'https://api.partnercenter.microsoft.com/.default'
     | 'https://api.partner.microsoft.com/.default'
     | 'https://api.partner.microsoft.com'
+    | 'https://management.azure.com/.default'

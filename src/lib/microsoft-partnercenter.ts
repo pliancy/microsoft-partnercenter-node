@@ -1,6 +1,8 @@
 import {
     ApplicationConsent,
+    AzureCostRow,
     Availability,
+    BillingCustomer,
     CreateCustomer,
     CreateUser,
     Customer,
@@ -380,6 +382,102 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         })
 
         return csv().fromString(data)
+    }
+
+    /**
+     * Retrieves all customers under a billing account.
+     * Used to map Partner Center tenant IDs to billing-account customer IDs for Cost Management queries.
+     * https://learn.microsoft.com/en-us/rest/api/billing/customers/list-by-billing-account
+     */
+    async getBillingCustomers(billingAccountId: string): Promise<BillingCustomer[]> {
+        const { access_token } = await this.tokenManager.authenticate(
+            'https://management.azure.com/.default',
+        )
+        const headers = { Authorization: `Bearer ${access_token}` }
+        const firstUrl = `https://management.azure.com/providers/Microsoft.Billing/billingAccounts/${billingAccountId}/customers?api-version=2020-05-01`
+
+        const customers: BillingCustomer[] = []
+        let nextUrl: string | undefined = firstUrl
+
+        while (nextUrl) {
+            const pageUrl = nextUrl
+            // eslint-disable-next-line no-await-in-loop
+            const pageData = (await axios.get(pageUrl, { headers })).data as any
+            for (const item of (pageData.value ?? []) as any[]) {
+                customers.push({
+                    id: item.name,
+                    displayName: item.properties?.displayName ?? '',
+                    tenantId: item.properties?.tenantId ?? '',
+                })
+            }
+            nextUrl = pageData.nextLink as string | undefined
+        }
+
+        return customers
+    }
+
+    /**
+     * Queries Azure Cost Management for actual costs grouped by service name for a single
+     * billing-account customer over a custom time period.
+     * https://learn.microsoft.com/en-us/rest/api/cost-management/query/usage
+     *
+     * @param billingAccountId - Partner billing account ID
+     * @param customerId - Billing-account customer ID (from getBillingCustomers)
+     * @param from - ISO date string for period start, e.g. '2026-06-01'
+     * @param to - ISO date string for period end, e.g. '2026-06-30'
+     */
+    async getCustomerAzureCosts(
+        billingAccountId: string,
+        customerId: string,
+        from: string,
+        to: string,
+    ): Promise<AzureCostRow[]> {
+        const { access_token } = await this.tokenManager.authenticate(
+            'https://management.azure.com/.default',
+        )
+        const url =
+            `https://management.azure.com/providers/Microsoft.Billing/billingAccounts/${billingAccountId}` +
+            `/customers/${customerId}/providers/Microsoft.CostManagement/query?api-version=2023-11-01`
+
+        const headers = { Authorization: `Bearer ${access_token}` }
+
+        const firstResponse = await axios.post(
+            url,
+            {
+                type: 'ActualCost',
+                timeframe: 'Custom',
+                timePeriod: { from, to },
+                dataset: {
+                    granularity: 'None',
+                    aggregation: { totalCost: { name: 'Cost', function: 'Sum' } },
+                    grouping: [{ type: 'Dimension', name: 'ServiceName' }],
+                },
+            },
+            { headers },
+        )
+
+        // Column schema is identical across all pages — read it once from the first response.
+        const columns: Array<{ name: string }> = firstResponse.data.properties?.columns ?? []
+        const costIdx = columns.findIndex((c) => c.name === 'Cost')
+        const currencyIdx = columns.findIndex((c) => c.name === 'Currency')
+        const serviceIdx = columns.findIndex((c) => c.name === 'ServiceName')
+
+        const allRows: any[][] = [...(firstResponse.data.properties?.rows ?? [])]
+        let nextUrl: string | undefined = firstResponse.data.properties?.nextLink
+
+        while (nextUrl) {
+            const pageUrl = nextUrl
+            // eslint-disable-next-line no-await-in-loop
+            const pageData = (await axios.get(pageUrl, { headers })).data as any
+            allRows.push(...((pageData.properties?.rows ?? []) as any[][]))
+            nextUrl = pageData.properties?.nextLink as string | undefined
+        }
+
+        return allRows.map((row) => ({
+            serviceName: row[serviceIdx] ?? '',
+            cost: row[costIdx] ?? 0,
+            currency: row[currencyIdx] ?? '',
+        }))
     }
 
     /**

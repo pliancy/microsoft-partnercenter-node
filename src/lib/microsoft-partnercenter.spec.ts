@@ -373,4 +373,266 @@ describe('Microsoft Partner Center', () => {
             expect(result).toEqual([{ Product: 'Prod1', ServicePlan: 'plan-a' }])
         })
     })
+
+    describe('getBillingCustomers', () => {
+        const managementAuth = {
+            token_type: 'Bearer',
+            expires_in: '3600',
+            ext_expires_in: '3600',
+            expires_on: '1',
+            not_before: '1',
+            resource: 'https://management.azure.com/',
+            access_token: 'test-management-token',
+        }
+
+        it('should authenticate with the management scope and return mapped BillingCustomer[]', async () => {
+            const authenticate = jest
+                .spyOn((partnerCenter as any).tokenManager, 'authenticate')
+                .mockResolvedValue(managementAuth)
+
+            jest.spyOn(axios, 'get').mockResolvedValue({
+                data: {
+                    value: [
+                        {
+                            name: 'billing-cust-001',
+                            properties: {
+                                displayName: 'Northstar Asset Management',
+                                tenantId: 'tenant-aaa-111',
+                            },
+                        },
+                        {
+                            name: 'billing-cust-002',
+                            properties: {
+                                displayName: 'Thermal Battery Corporation',
+                                tenantId: 'tenant-bbb-222',
+                            },
+                        },
+                    ],
+                },
+            })
+
+            const billingAccountId = 'account-123'
+            const result = await partnerCenter.getBillingCustomers(billingAccountId)
+
+            expect(authenticate).toHaveBeenCalledWith('https://management.azure.com/.default')
+            expect(axios.get).toHaveBeenCalledWith(
+                `https://management.azure.com/providers/Microsoft.Billing/billingAccounts/${billingAccountId}/customers?api-version=2020-05-01`,
+                { headers: { Authorization: 'Bearer test-management-token' } },
+            )
+            expect(result).toEqual([
+                {
+                    id: 'billing-cust-001',
+                    displayName: 'Northstar Asset Management',
+                    tenantId: 'tenant-aaa-111',
+                },
+                {
+                    id: 'billing-cust-002',
+                    displayName: 'Thermal Battery Corporation',
+                    tenantId: 'tenant-bbb-222',
+                },
+            ])
+        })
+
+        it('should follow nextLink and accumulate customers across pages', async () => {
+            jest.spyOn((partnerCenter as any).tokenManager, 'authenticate').mockResolvedValue(
+                managementAuth,
+            )
+            jest.spyOn(axios, 'get')
+                .mockResolvedValueOnce({
+                    data: {
+                        value: [
+                            {
+                                name: 'cust-001',
+                                properties: { displayName: 'Acme', tenantId: 'tid-1' },
+                            },
+                        ],
+                        nextLink: 'https://management.azure.com/next-page-customers',
+                    },
+                })
+                .mockResolvedValueOnce({
+                    data: {
+                        value: [
+                            {
+                                name: 'cust-002',
+                                properties: { displayName: 'Globex', tenantId: 'tid-2' },
+                            },
+                        ],
+                        // no nextLink — final page
+                    },
+                })
+
+            const result = await partnerCenter.getBillingCustomers('account-123')
+
+            expect(axios.get).toHaveBeenCalledTimes(2)
+            expect(axios.get).toHaveBeenNthCalledWith(
+                2,
+                'https://management.azure.com/next-page-customers',
+                expect.any(Object),
+            )
+            expect(result).toEqual([
+                { id: 'cust-001', displayName: 'Acme', tenantId: 'tid-1' },
+                { id: 'cust-002', displayName: 'Globex', tenantId: 'tid-2' },
+            ])
+        })
+
+        it('should return an empty array when the billing account has no customers', async () => {
+            jest.spyOn((partnerCenter as any).tokenManager, 'authenticate').mockResolvedValue(
+                managementAuth,
+            )
+            jest.spyOn(axios, 'get').mockResolvedValue({ data: { value: [] } })
+
+            const result = await partnerCenter.getBillingCustomers('account-123')
+
+            expect(result).toEqual([])
+        })
+    })
+
+    describe('getCustomerAzureCosts', () => {
+        const managementAuth = {
+            token_type: 'Bearer',
+            expires_in: '3600',
+            ext_expires_in: '3600',
+            expires_on: '1',
+            not_before: '1',
+            resource: 'https://management.azure.com/',
+            access_token: 'test-management-token',
+        }
+
+        it('should authenticate with the management scope, POST the correct body, and parse rows into AzureCostRow[]', async () => {
+            const authenticate = jest
+                .spyOn((partnerCenter as any).tokenManager, 'authenticate')
+                .mockResolvedValue(managementAuth)
+
+            jest.spyOn(axios, 'post').mockResolvedValue({
+                data: {
+                    properties: {
+                        columns: [{ name: 'Cost' }, { name: 'Currency' }, { name: 'ServiceName' }],
+                        rows: [
+                            [1084.5, 'USD', 'Storage'],
+                            [914.0, 'USD', 'Virtual Machines'],
+                        ],
+                    },
+                },
+            })
+
+            const billingAccountId = 'account-123'
+            const customerId = 'billing-cust-001'
+            const result = await partnerCenter.getCustomerAzureCosts(
+                billingAccountId,
+                customerId,
+                '2026-06-01',
+                '2026-06-30',
+            )
+
+            expect(authenticate).toHaveBeenCalledWith('https://management.azure.com/.default')
+            expect(axios.post).toHaveBeenCalledWith(
+                `https://management.azure.com/providers/Microsoft.Billing/billingAccounts/${billingAccountId}/customers/${customerId}/providers/Microsoft.CostManagement/query?api-version=2023-11-01`,
+                {
+                    type: 'ActualCost',
+                    timeframe: 'Custom',
+                    timePeriod: { from: '2026-06-01', to: '2026-06-30' },
+                    dataset: {
+                        granularity: 'None',
+                        aggregation: { totalCost: { name: 'Cost', function: 'Sum' } },
+                        grouping: [{ type: 'Dimension', name: 'ServiceName' }],
+                    },
+                },
+                { headers: { Authorization: 'Bearer test-management-token' } },
+            )
+            expect(result).toEqual([
+                { serviceName: 'Storage', cost: 1084.5, currency: 'USD' },
+                { serviceName: 'Virtual Machines', cost: 914.0, currency: 'USD' },
+            ])
+        })
+
+        it('should parse rows correctly regardless of column order', async () => {
+            jest.spyOn((partnerCenter as any).tokenManager, 'authenticate').mockResolvedValue(
+                managementAuth,
+            )
+            jest.spyOn(axios, 'post').mockResolvedValue({
+                data: {
+                    properties: {
+                        // ServiceName first, then Currency, then Cost — reversed from the happy-path order
+                        columns: [{ name: 'ServiceName' }, { name: 'Currency' }, { name: 'Cost' }],
+                        rows: [['Backup', 'USD', 321.75]],
+                    },
+                },
+            })
+
+            const result = await partnerCenter.getCustomerAzureCosts(
+                'account-123',
+                'cust-001',
+                '2026-06-01',
+                '2026-06-30',
+            )
+
+            expect(result).toEqual([{ serviceName: 'Backup', cost: 321.75, currency: 'USD' }])
+        })
+
+        it('should follow properties.nextLink and accumulate rows across pages via GET', async () => {
+            jest.spyOn((partnerCenter as any).tokenManager, 'authenticate').mockResolvedValue(
+                managementAuth,
+            )
+            jest.spyOn(axios, 'post').mockResolvedValue({
+                data: {
+                    properties: {
+                        columns: [{ name: 'Cost' }, { name: 'Currency' }, { name: 'ServiceName' }],
+                        rows: [[500.0, 'USD', 'Storage']],
+                        nextLink: 'https://management.azure.com/cost-next-page',
+                    },
+                },
+            })
+            jest.spyOn(axios, 'get').mockResolvedValue({
+                data: {
+                    properties: {
+                        rows: [[250.0, 'USD', 'Backup']],
+                        // no nextLink — final page
+                    },
+                },
+            })
+
+            const result = await partnerCenter.getCustomerAzureCosts(
+                'account-123',
+                'cust-001',
+                '2026-06-01',
+                '2026-06-30',
+            )
+
+            expect(axios.get).toHaveBeenCalledWith(
+                'https://management.azure.com/cost-next-page',
+                expect.objectContaining({
+                    headers: expect.objectContaining({
+                        Authorization: 'Bearer test-management-token',
+                    }),
+                }),
+            )
+            expect(result).toEqual([
+                { serviceName: 'Storage', cost: 500.0, currency: 'USD' },
+                { serviceName: 'Backup', cost: 250.0, currency: 'USD' },
+            ])
+        })
+
+        it('should return an empty array when there are no rows', async () => {
+            jest.spyOn((partnerCenter as any).tokenManager, 'authenticate').mockResolvedValue(
+                managementAuth,
+            )
+            jest.spyOn(axios, 'post').mockResolvedValue({
+                data: {
+                    properties: {
+                        columns: [{ name: 'Cost' }, { name: 'Currency' }, { name: 'ServiceName' }],
+                        rows: [],
+                    },
+                },
+            })
+
+            const result = await partnerCenter.getCustomerAzureCosts(
+                'account-123',
+                'cust-001',
+                '2026-06-01',
+                '2026-06-30',
+            )
+
+            expect(result).toEqual([])
+        })
+    })
 })
