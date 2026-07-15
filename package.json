@@ -65,7 +65,7 @@
     "test": "jest",
     "tsc": "tsc -p tsconfig.build.json"
   },
-  "version": "6.6.1",
+  "version": "6.7.0",
   "volta": {
     "node": "24.18.0",
     "yarn": "1.22.22"
