@@ -1,3 +1,4 @@
+export * from './azure-cost.types'
 export * from './common.types'
 export * from './customers.types'
 export * from './invoices.types'

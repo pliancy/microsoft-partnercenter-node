@@ -1,6 +1,8 @@
 import {
     ApplicationConsent,
+    AzureCostRow,
     Availability,
+    BillingCustomer,
     CreateCustomer,
     CreateUser,
     Customer,
@@ -380,6 +382,78 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         })
 
         return csv().fromString(data)
+    }
+
+    /**
+     * Retrieves all customers under a billing account.
+     * Used to map Partner Center tenant IDs to billing-account customer IDs for Cost Management queries.
+     * https://learn.microsoft.com/en-us/rest/api/billing/customers/list-by-billing-account
+     */
+    async getBillingCustomers(billingAccountId: string): Promise<BillingCustomer[]> {
+        const { access_token } = await this.tokenManager.authenticate(
+            'https://management.azure.com/.default',
+        )
+        const url = `https://management.azure.com/providers/Microsoft.Billing/billingAccounts/${billingAccountId}/customers?api-version=2020-05-01`
+        const { data } = await axios.get(url, {
+            headers: { Authorization: `Bearer ${access_token}` },
+        })
+        return (data.value ?? []).map((item: any) => ({
+            id: item.name,
+            displayName: item.properties?.displayName ?? '',
+            tenantId: item.properties?.tenantId ?? '',
+        }))
+    }
+
+    /**
+     * Queries Azure Cost Management for actual costs grouped by service name for a single
+     * billing-account customer over a custom time period.
+     * https://learn.microsoft.com/en-us/rest/api/cost-management/query/usage
+     *
+     * @param billingAccountId - Partner billing account ID
+     * @param customerId - Billing-account customer ID (from getBillingCustomers)
+     * @param from - ISO date string for period start, e.g. '2026-06-01'
+     * @param to - ISO date string for period end, e.g. '2026-06-30'
+     */
+    async getCustomerAzureCosts(
+        billingAccountId: string,
+        customerId: string,
+        from: string,
+        to: string,
+    ): Promise<AzureCostRow[]> {
+        const { access_token } = await this.tokenManager.authenticate(
+            'https://management.azure.com/.default',
+        )
+        const url =
+            `https://management.azure.com/providers/Microsoft.Billing/billingAccounts/${billingAccountId}` +
+            `/customers/${customerId}/providers/Microsoft.CostManagement/query?api-version=2023-11-01`
+
+        const { data } = await axios.post(
+            url,
+            {
+                type: 'ActualCost',
+                timeframe: 'Custom',
+                timePeriod: { from, to },
+                dataset: {
+                    granularity: 'None',
+                    aggregation: { totalCost: { name: 'Cost', function: 'Sum' } },
+                    grouping: [{ type: 'Dimension', name: 'ServiceName' }],
+                },
+            },
+            { headers: { Authorization: `Bearer ${access_token}` } },
+        )
+
+        const columns: Array<{ name: string }> = data.properties?.columns ?? []
+        const rows: any[][] = data.properties?.rows ?? []
+
+        const costIdx = columns.findIndex((c) => c.name === 'Cost')
+        const currencyIdx = columns.findIndex((c) => c.name === 'Currency')
+        const serviceIdx = columns.findIndex((c) => c.name === 'ServiceName')
+
+        return rows.map((row) => ({
+            serviceName: row[serviceIdx] ?? '',
+            cost: row[costIdx] ?? 0,
+            currency: row[currencyIdx] ?? '',
+        }))
     }
 
     /**
