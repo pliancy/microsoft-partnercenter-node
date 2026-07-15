@@ -393,15 +393,27 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         const { access_token } = await this.tokenManager.authenticate(
             'https://management.azure.com/.default',
         )
-        const url = `https://management.azure.com/providers/Microsoft.Billing/billingAccounts/${billingAccountId}/customers?api-version=2020-05-01`
-        const { data } = await axios.get(url, {
-            headers: { Authorization: `Bearer ${access_token}` },
-        })
-        return (data.value ?? []).map((item: any) => ({
-            id: item.name,
-            displayName: item.properties?.displayName ?? '',
-            tenantId: item.properties?.tenantId ?? '',
-        }))
+        const headers = { Authorization: `Bearer ${access_token}` }
+        const firstUrl = `https://management.azure.com/providers/Microsoft.Billing/billingAccounts/${billingAccountId}/customers?api-version=2020-05-01`
+
+        const customers: BillingCustomer[] = []
+        let nextUrl: string | undefined = firstUrl
+
+        while (nextUrl) {
+            const pageUrl = nextUrl
+            // eslint-disable-next-line no-await-in-loop
+            const pageData = (await axios.get(pageUrl, { headers })).data as any
+            for (const item of (pageData.value ?? []) as any[]) {
+                customers.push({
+                    id: item.name,
+                    displayName: item.properties?.displayName ?? '',
+                    tenantId: item.properties?.tenantId ?? '',
+                })
+            }
+            nextUrl = pageData.nextLink as string | undefined
+        }
+
+        return customers
     }
 
     /**
@@ -427,7 +439,9 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
             `https://management.azure.com/providers/Microsoft.Billing/billingAccounts/${billingAccountId}` +
             `/customers/${customerId}/providers/Microsoft.CostManagement/query?api-version=2023-11-01`
 
-        const { data } = await axios.post(
+        const headers = { Authorization: `Bearer ${access_token}` }
+
+        const firstResponse = await axios.post(
             url,
             {
                 type: 'ActualCost',
@@ -439,17 +453,27 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
                     grouping: [{ type: 'Dimension', name: 'ServiceName' }],
                 },
             },
-            { headers: { Authorization: `Bearer ${access_token}` } },
+            { headers },
         )
 
-        const columns: Array<{ name: string }> = data.properties?.columns ?? []
-        const rows: any[][] = data.properties?.rows ?? []
-
+        // Column schema is identical across all pages — read it once from the first response.
+        const columns: Array<{ name: string }> = firstResponse.data.properties?.columns ?? []
         const costIdx = columns.findIndex((c) => c.name === 'Cost')
         const currencyIdx = columns.findIndex((c) => c.name === 'Currency')
         const serviceIdx = columns.findIndex((c) => c.name === 'ServiceName')
 
-        return rows.map((row) => ({
+        const allRows: any[][] = [...(firstResponse.data.properties?.rows ?? [])]
+        let nextUrl: string | undefined = firstResponse.data.properties?.nextLink
+
+        while (nextUrl) {
+            const pageUrl = nextUrl
+            // eslint-disable-next-line no-await-in-loop
+            const pageData = (await axios.get(pageUrl, { headers })).data as any
+            allRows.push(...((pageData.properties?.rows ?? []) as any[][]))
+            nextUrl = pageData.properties?.nextLink as string | undefined
+        }
+
+        return allRows.map((row) => ({
             serviceName: row[serviceIdx] ?? '',
             cost: row[costIdx] ?? 0,
             currency: row[currencyIdx] ?? '',

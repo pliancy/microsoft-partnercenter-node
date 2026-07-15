@@ -433,6 +433,48 @@ describe('Microsoft Partner Center', () => {
             ])
         })
 
+        it('should follow nextLink and accumulate customers across pages', async () => {
+            jest.spyOn((partnerCenter as any).tokenManager, 'authenticate').mockResolvedValue(
+                managementAuth,
+            )
+            jest.spyOn(axios, 'get')
+                .mockResolvedValueOnce({
+                    data: {
+                        value: [
+                            {
+                                name: 'cust-001',
+                                properties: { displayName: 'Acme', tenantId: 'tid-1' },
+                            },
+                        ],
+                        nextLink: 'https://management.azure.com/next-page-customers',
+                    },
+                })
+                .mockResolvedValueOnce({
+                    data: {
+                        value: [
+                            {
+                                name: 'cust-002',
+                                properties: { displayName: 'Globex', tenantId: 'tid-2' },
+                            },
+                        ],
+                        // no nextLink — final page
+                    },
+                })
+
+            const result = await partnerCenter.getBillingCustomers('account-123')
+
+            expect(axios.get).toHaveBeenCalledTimes(2)
+            expect(axios.get).toHaveBeenNthCalledWith(
+                2,
+                'https://management.azure.com/next-page-customers',
+                expect.any(Object),
+            )
+            expect(result).toEqual([
+                { id: 'cust-001', displayName: 'Acme', tenantId: 'tid-1' },
+                { id: 'cust-002', displayName: 'Globex', tenantId: 'tid-2' },
+            ])
+        })
+
         it('should return an empty array when the billing account has no customers', async () => {
             jest.spyOn((partnerCenter as any).tokenManager, 'authenticate').mockResolvedValue(
                 managementAuth,
@@ -525,6 +567,49 @@ describe('Microsoft Partner Center', () => {
             )
 
             expect(result).toEqual([{ serviceName: 'Backup', cost: 321.75, currency: 'USD' }])
+        })
+
+        it('should follow properties.nextLink and accumulate rows across pages via GET', async () => {
+            jest.spyOn((partnerCenter as any).tokenManager, 'authenticate').mockResolvedValue(
+                managementAuth,
+            )
+            jest.spyOn(axios, 'post').mockResolvedValue({
+                data: {
+                    properties: {
+                        columns: [{ name: 'Cost' }, { name: 'Currency' }, { name: 'ServiceName' }],
+                        rows: [[500.0, 'USD', 'Storage']],
+                        nextLink: 'https://management.azure.com/cost-next-page',
+                    },
+                },
+            })
+            jest.spyOn(axios, 'get').mockResolvedValue({
+                data: {
+                    properties: {
+                        rows: [[250.0, 'USD', 'Backup']],
+                        // no nextLink — final page
+                    },
+                },
+            })
+
+            const result = await partnerCenter.getCustomerAzureCosts(
+                'account-123',
+                'cust-001',
+                '2026-06-01',
+                '2026-06-30',
+            )
+
+            expect(axios.get).toHaveBeenCalledWith(
+                'https://management.azure.com/cost-next-page',
+                expect.objectContaining({
+                    headers: expect.objectContaining({
+                        Authorization: 'Bearer test-management-token',
+                    }),
+                }),
+            )
+            expect(result).toEqual([
+                { serviceName: 'Storage', cost: 500.0, currency: 'USD' },
+                { serviceName: 'Backup', cost: 250.0, currency: 'USD' },
+            ])
         })
 
         it('should return an empty array when there are no rows', async () => {
