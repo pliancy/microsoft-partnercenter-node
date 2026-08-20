@@ -1,5 +1,4 @@
-import mockAxios from 'jest-mock-axios'
-import { AxiosInstance } from 'axios'
+import axios, { AxiosInstance } from 'axios'
 import { EnterpriseApplications } from './enterprise-applications'
 import { ServicePrincipal } from './enterprise-applications.types'
 
@@ -7,11 +6,11 @@ describe('EnterpriseApplications', () => {
     let servicePrincipals: EnterpriseApplications
 
     beforeEach(() => {
-        servicePrincipals = new EnterpriseApplications(mockAxios as never as AxiosInstance)
+        servicePrincipals = new EnterpriseApplications(axios as never as AxiosInstance)
     })
 
     afterEach(() => {
-        mockAxios.reset()
+        jest.clearAllMocks()
     })
 
     describe('getByAppId', () => {
@@ -24,7 +23,7 @@ describe('EnterpriseApplications', () => {
                 displayName: 'Test App',
             } as ServicePrincipal
 
-            jest.spyOn(mockAxios, 'get').mockResolvedValue({
+            jest.spyOn(axios, 'get').mockResolvedValue({
                 data: {
                     value: [mockSP],
                 },
@@ -33,13 +32,11 @@ describe('EnterpriseApplications', () => {
             const result = await servicePrincipals.getByAppId(appId)
 
             expect(result).toEqual(mockSP)
-            expect(mockAxios.get).toHaveBeenCalledWith(
-                `servicePrincipals?$filter=appId eq '${appId}'`,
-            )
+            expect(axios.get).toHaveBeenCalledWith(`servicePrincipals?$filter=appId eq '${appId}'`)
         })
 
         it('should return null if no service principal is found', async () => {
-            jest.spyOn(mockAxios, 'get').mockResolvedValue({
+            jest.spyOn(axios, 'get').mockResolvedValue({
                 data: {
                     value: [],
                 },
@@ -48,13 +45,11 @@ describe('EnterpriseApplications', () => {
             const result = await servicePrincipals.getByAppId(appId)
 
             expect(result).toBeNull()
-            expect(mockAxios.get).toHaveBeenCalledWith(
-                `servicePrincipals?$filter=appId eq '${appId}'`,
-            )
+            expect(axios.get).toHaveBeenCalledWith(`servicePrincipals?$filter=appId eq '${appId}'`)
         })
 
         it('should return null if data value is missing', async () => {
-            jest.spyOn(mockAxios, 'get').mockResolvedValue({
+            jest.spyOn(axios, 'get').mockResolvedValue({
                 data: {},
             })
 
@@ -69,7 +64,7 @@ describe('EnterpriseApplications', () => {
 
         it('should get app role assignments', async () => {
             const mockAssignments = [{ id: 'assignment-1' }, { id: 'assignment-2' }]
-            jest.spyOn(mockAxios, 'get').mockResolvedValue({
+            jest.spyOn(axios, 'get').mockResolvedValue({
                 data: {
                     value: mockAssignments,
                 },
@@ -78,13 +73,13 @@ describe('EnterpriseApplications', () => {
             const result = await servicePrincipals.getAppRoleAssignments(principalId)
 
             expect(result).toEqual(mockAssignments)
-            expect(mockAxios.get).toHaveBeenCalledWith(
+            expect(axios.get).toHaveBeenCalledWith(
                 `servicePrincipals/${principalId}/appRoleAssignments`,
             )
         })
 
         it('should return an empty array if no assignments are found', async () => {
-            jest.spyOn(mockAxios, 'get').mockResolvedValue({
+            jest.spyOn(axios, 'get').mockResolvedValue({
                 data: {},
             })
 
@@ -101,7 +96,7 @@ describe('EnterpriseApplications', () => {
             const appRoleId = 'role-id'
 
             const mockAssignment = { id: 'assignment-id' }
-            jest.spyOn(mockAxios, 'post').mockResolvedValue({ data: mockAssignment })
+            jest.spyOn(axios, 'post').mockResolvedValue({ data: mockAssignment })
 
             const result = await servicePrincipals.grantAppRoleAssignment(
                 principalId,
@@ -110,7 +105,7 @@ describe('EnterpriseApplications', () => {
             )
 
             expect(result).toEqual(mockAssignment)
-            expect(mockAxios.post).toHaveBeenCalledWith(
+            expect(axios.post).toHaveBeenCalledWith(
                 `servicePrincipals/${principalId}/appRoleAssignments`,
                 {
                     principalId,

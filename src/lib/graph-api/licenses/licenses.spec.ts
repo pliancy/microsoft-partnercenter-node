@@ -1,14 +1,15 @@
 import { Licenses } from './licenses'
-import mockAxios from 'jest-mock-axios'
-import { AxiosInstance } from 'axios'
+import axios, { AxiosInstance } from 'axios'
 import { GraphUserAssignedLicense, SubscribedSku } from './licenses.types'
 
 describe('Licenses', () => {
     let licenses: Licenses
 
-    beforeEach(() => (licenses = new Licenses(mockAxios as unknown as AxiosInstance)))
+    beforeEach(() => (licenses = new Licenses(axios as unknown as AxiosInstance)))
 
-    afterEach(() => mockAxios.reset())
+    afterEach(() => {
+        jest.clearAllMocks()
+    })
 
     it('creates an instance of Licenses', () => expect(licenses).toBeTruthy())
 
@@ -28,12 +29,12 @@ describe('Licenses', () => {
                 },
             ]
 
-            jest.spyOn(mockAxios, 'get').mockResolvedValue({
+            jest.spyOn(axios, 'get').mockResolvedValue({
                 data: { value: mockUserLicenses },
             })
 
             await expect(licenses.getUserLicenses()).resolves.toEqual(mockUserLicenses)
-            expect(mockAxios.get).toHaveBeenCalledWith(
+            expect(axios.get).toHaveBeenCalledWith(
                 'users?$select=id,userPrincipalName,assignedLicenses,displayName',
             )
         })
@@ -63,7 +64,7 @@ describe('Licenses', () => {
             const nextLink =
                 'https://graph.microsoft.com/v1.0/users?$select=id,userPrincipalName,assignedLicenses,displayName&$skiptoken=abc'
 
-            jest.spyOn(mockAxios, 'get')
+            jest.spyOn(axios, 'get')
                 .mockResolvedValueOnce({
                     data: {
                         value: firstPage,
@@ -75,11 +76,11 @@ describe('Licenses', () => {
                 })
 
             await expect(licenses.getUserLicenses()).resolves.toEqual([...firstPage, ...secondPage])
-            expect(mockAxios.get).toHaveBeenNthCalledWith(
+            expect(axios.get).toHaveBeenNthCalledWith(
                 1,
                 'users?$select=id,userPrincipalName,assignedLicenses,displayName',
             )
-            expect(mockAxios.get).toHaveBeenNthCalledWith(2, nextLink)
+            expect(axios.get).toHaveBeenNthCalledWith(2, nextLink)
         })
     })
 
@@ -113,12 +114,12 @@ describe('Licenses', () => {
                 },
             ]
 
-            jest.spyOn(mockAxios, 'get').mockResolvedValue({
+            jest.spyOn(axios, 'get').mockResolvedValue({
                 data: { value: mockSkus },
             })
 
             await expect(licenses.getSubscribedSkus()).resolves.toEqual(mockSkus)
-            expect(mockAxios.get).toHaveBeenCalledWith('subscribedSkus')
+            expect(axios.get).toHaveBeenCalledWith('subscribedSkus')
         })
 
         it('gets subscribed SKUs from all pages', async () => {
@@ -164,7 +165,7 @@ describe('Licenses', () => {
             ]
             const nextLink = 'https://graph.microsoft.com/v1.0/subscribedSkus?$skiptoken=abc'
 
-            jest.spyOn(mockAxios, 'get')
+            jest.spyOn(axios, 'get')
                 .mockResolvedValueOnce({
                     data: {
                         value: firstPage,
@@ -179,8 +180,8 @@ describe('Licenses', () => {
                 ...firstPage,
                 ...secondPage,
             ])
-            expect(mockAxios.get).toHaveBeenNthCalledWith(1, 'subscribedSkus')
-            expect(mockAxios.get).toHaveBeenNthCalledWith(2, nextLink)
+            expect(axios.get).toHaveBeenNthCalledWith(1, 'subscribedSkus')
+            expect(axios.get).toHaveBeenNthCalledWith(2, nextLink)
         })
     })
 })

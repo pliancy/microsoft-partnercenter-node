@@ -5,6 +5,7 @@ import { Gdap } from './gdap/gdap'
 import { Licenses } from './licenses/licenses'
 import { Users } from './users/users'
 import { EnterpriseApplications } from './enterprise-applications/enterprise-applications'
+import { RoleManagement } from './role-management/role-management'
 
 export class MicrosoftGraphApi extends MicrosoftApiBase {
     domains!: Domains
@@ -17,6 +18,8 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
 
     licenses!: Licenses
 
+    roleManagement!: RoleManagement
+
     constructor(config: GraphApiConfig) {
         super(config, 'https://graph.microsoft.com/v1.0/', 'https://graph.microsoft.com/.default')
         this.domains = new Domains(this.httpAgent)
@@ -24,5 +27,6 @@ export class MicrosoftGraphApi extends MicrosoftApiBase {
         this.gdap = new Gdap(this.httpAgent)
         this.users = new Users(this.httpAgent)
         this.licenses = new Licenses(this.httpAgent)
+        this.roleManagement = new RoleManagement(this.httpAgent)
     }
 }
