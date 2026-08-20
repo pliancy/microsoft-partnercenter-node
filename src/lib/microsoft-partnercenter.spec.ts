@@ -7,7 +7,6 @@ jest.mock('unzipper', () => {
 
 import { MicrosoftPartnerCenter } from './microsoft-partnercenter'
 import axios from 'axios'
-import mockAxios from 'jest-mock-axios'
 import { Readable } from 'stream'
 import { OrderLineItem } from './types'
 import { ApplicationConsent } from './types'
@@ -36,7 +35,7 @@ describe('Microsoft Partner Center', () => {
     })
 
     afterEach(() => {
-        mockAxios.reset()
+        jest.clearAllMocks()
     })
 
     it('should get all customers', async () => {

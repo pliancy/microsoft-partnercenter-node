@@ -1,16 +1,15 @@
-import mockAxios from 'jest-mock-axios'
-import { AxiosInstance } from 'axios'
+import axios, { AxiosInstance } from 'axios'
 import { RoleManagement } from './role-management'
 
 describe('RoleManagement', () => {
     let roleManagement: RoleManagement
 
     beforeEach(() => {
-        roleManagement = new RoleManagement(mockAxios as never as AxiosInstance)
+        roleManagement = new RoleManagement(axios as never as AxiosInstance)
     })
 
     afterEach(() => {
-        mockAxios.reset()
+        jest.clearAllMocks()
     })
 
     describe('getDirectoryRoleAssignments', () => {
@@ -21,7 +20,7 @@ describe('RoleManagement', () => {
             const mockAssignments = [
                 { id: 'ra-1', principalId, roleDefinitionId, directoryScopeId: '/' },
             ]
-            jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: { value: mockAssignments } })
+            jest.spyOn(axios, 'get').mockResolvedValue({ data: { value: mockAssignments } })
 
             const result = await roleManagement.getDirectoryRoleAssignments(
                 principalId,
@@ -29,13 +28,13 @@ describe('RoleManagement', () => {
             )
 
             expect(result).toEqual(mockAssignments)
-            expect(mockAxios.get).toHaveBeenCalledWith(
+            expect(axios.get).toHaveBeenCalledWith(
                 `roleManagement/directory/roleAssignments?$filter=principalId eq '${principalId}' and roleDefinitionId eq '${roleDefinitionId}'`,
             )
         })
 
         it('should return an empty array when no assignments exist', async () => {
-            jest.spyOn(mockAxios, 'get').mockResolvedValue({ data: { value: [] } })
+            jest.spyOn(axios, 'get').mockResolvedValue({ data: { value: [] } })
 
             const result = await roleManagement.getDirectoryRoleAssignments(
                 principalId,
@@ -57,7 +56,7 @@ describe('RoleManagement', () => {
                 roleDefinitionId,
                 directoryScopeId: '/',
             }
-            jest.spyOn(mockAxios, 'post').mockResolvedValue({ data: mockAssignment })
+            jest.spyOn(axios, 'post').mockResolvedValue({ data: mockAssignment })
 
             const result = await roleManagement.grantDirectoryRoleAssignment(
                 principalId,
@@ -65,15 +64,12 @@ describe('RoleManagement', () => {
             )
 
             expect(result).toEqual(mockAssignment)
-            expect(mockAxios.post).toHaveBeenCalledWith(
-                'roleManagement/directory/roleAssignments',
-                {
-                    '@odata.type': '#microsoft.graph.unifiedRoleAssignment',
-                    roleDefinitionId,
-                    principalId,
-                    directoryScopeId: '/',
-                },
-            )
+            expect(axios.post).toHaveBeenCalledWith('roleManagement/directory/roleAssignments', {
+                '@odata.type': '#microsoft.graph.unifiedRoleAssignment',
+                roleDefinitionId,
+                principalId,
+                directoryScopeId: '/',
+            })
         })
     })
 })
