@@ -487,6 +487,8 @@ describe('Microsoft Partner Center', () => {
     })
 
     describe('getCustomerAzureCosts', () => {
+        const clientType = 'PartnerCenterSDK'
+        const commandName = 'GetCustomerAzureCosts'
         const managementAuth = {
             token_type: 'Bearer',
             expires_in: '3600',
@@ -519,6 +521,8 @@ describe('Microsoft Partner Center', () => {
             const result = await partnerCenter.getCustomerAzureCosts(
                 billingAccountId,
                 customerId,
+                clientType,
+                commandName,
                 '2026-06-01',
                 '2026-06-30',
             )
@@ -536,7 +540,13 @@ describe('Microsoft Partner Center', () => {
                         grouping: [{ type: 'Dimension', name: 'ServiceName' }],
                     },
                 },
-                { headers: { Authorization: 'Bearer test-management-token' } },
+                {
+                    headers: {
+                        Authorization: 'Bearer test-management-token',
+                        ClientType: clientType,
+                        'X-Ms-Command-Name': commandName,
+                    },
+                },
             )
             expect(result).toEqual([
                 { serviceName: 'Storage', cost: 1084.5, currency: 'USD' },
@@ -561,6 +571,8 @@ describe('Microsoft Partner Center', () => {
             const result = await partnerCenter.getCustomerAzureCosts(
                 'account-123',
                 'cust-001',
+                clientType,
+                commandName,
                 '2026-06-01',
                 '2026-06-30',
             )
@@ -593,18 +605,19 @@ describe('Microsoft Partner Center', () => {
             const result = await partnerCenter.getCustomerAzureCosts(
                 'account-123',
                 'cust-001',
+                clientType,
+                commandName,
                 '2026-06-01',
                 '2026-06-30',
             )
 
-            expect(axios.get).toHaveBeenCalledWith(
-                'https://management.azure.com/cost-next-page',
-                expect.objectContaining({
-                    headers: expect.objectContaining({
-                        Authorization: 'Bearer test-management-token',
-                    }),
-                }),
-            )
+            expect(axios.get).toHaveBeenCalledWith('https://management.azure.com/cost-next-page', {
+                headers: {
+                    Authorization: 'Bearer test-management-token',
+                    ClientType: clientType,
+                    'X-Ms-Command-Name': commandName,
+                },
+            })
             expect(result).toEqual([
                 { serviceName: 'Storage', cost: 500.0, currency: 'USD' },
                 { serviceName: 'Backup', cost: 250.0, currency: 'USD' },
@@ -627,6 +640,8 @@ describe('Microsoft Partner Center', () => {
             const result = await partnerCenter.getCustomerAzureCosts(
                 'account-123',
                 'cust-001',
+                clientType,
+                commandName,
                 '2026-06-01',
                 '2026-06-30',
             )
