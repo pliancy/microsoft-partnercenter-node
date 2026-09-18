@@ -263,6 +263,7 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         subscriptionId: string,
     ): Promise<Subscription> {
         return this.updateCustomerSubscription(customerId, subscriptionId, {
+            autoRenewEnabled: true,
             scheduledNextTermInstructions: null,
             scheduledActions: null,
         })
@@ -280,6 +281,7 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         if (options?.atTermEnd) {
             return this.updateCustomerSubscription(customerId, subscriptionId, {
                 autoRenewEnabled: false,
+                scheduledNextTermInstructions: null,
                 scheduledActions: [buildScheduledCancelAction()],
             })
         }

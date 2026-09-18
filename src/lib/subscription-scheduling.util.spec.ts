@@ -101,6 +101,25 @@ describe('subscription-scheduling.util', () => {
                 promotionId: undefined,
             })
         })
+
+        it('does not reuse subscription.customTermEndDate when caller omits a date', () => {
+            const instructions = buildScheduledNextTermInstructions(
+                { ...baseSubscription, customTermEndDate: '2026-09-30T00:00:00.000Z' },
+                8,
+            )
+
+            expect(instructions.customTermEndDate).toBeUndefined()
+        })
+
+        it('includes customTermEndDate only when explicitly provided', () => {
+            const instructions = buildScheduledNextTermInstructions(
+                baseSubscription,
+                8,
+                '2026-10-31T00:00:00.000Z',
+            )
+
+            expect(instructions.customTermEndDate).toBe('2026-10-31T00:00:00.000Z')
+        })
     })
 
     describe('buildProductTermFromSubscription', () => {

@@ -54,11 +54,18 @@ export function buildScheduledNextTermInstructions(
     quantity: number,
     customTermEndDate?: string | Date,
 ): ScheduledNextTermInstructions {
-    return {
+    const instructions: ScheduledNextTermInstructions = {
         product: buildProductTermFromSubscription(subscription),
         quantity,
-        customTermEndDate: customTermEndDate ?? subscription.customTermEndDate,
     }
+
+    // Only set when explicitly provided. subscription.customTermEndDate describes the
+    // current term alignment, not the next term, and must not be reused for renewals.
+    if (customTermEndDate !== undefined) {
+        instructions.customTermEndDate = customTermEndDate
+    }
+
+    return instructions
 }
 
 export function buildScheduledRenewalAction(

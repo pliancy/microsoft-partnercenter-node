@@ -127,12 +127,14 @@ describe('Microsoft Partner Center', () => {
         )
     })
 
-    it('should clear scheduled subscription changes', async () => {
+    it('should clear scheduled subscription changes and restore auto-renew', async () => {
         const subscription = {
             id: '1',
             offerId: 'CFQ7TTC0LH16:0001:AVAIL123',
             quantity: 10,
+            autoRenewEnabled: false,
             scheduledNextTermInstructions: { quantity: 8 },
+            scheduledActions: [{ scheduleType: 'TermEnd', actionType: 'Cancel' }],
         }
         jest.spyOn(axios, 'get').mockResolvedValue({ data: subscription })
         jest.spyOn(axios, 'patch').mockResolvedValue({ data: subscription })
@@ -142,6 +144,7 @@ describe('Microsoft Partner Center', () => {
         expect(axios.patch).toHaveBeenCalledWith(
             '/customers/cust-1/subscriptions/1',
             expect.objectContaining({
+                autoRenewEnabled: true,
                 scheduledNextTermInstructions: null,
                 scheduledActions: null,
             }),
@@ -163,8 +166,13 @@ describe('Microsoft Partner Center', () => {
         )
     })
 
-    it('should schedule subscription cancellation at term end', async () => {
-        const subscription = { id: '1', offerId: 'CFQ7TTC0LH16:0001:AVAIL123', quantity: 1 }
+    it('should schedule subscription cancellation at term end and clear renewal instructions', async () => {
+        const subscription = {
+            id: '1',
+            offerId: 'CFQ7TTC0LH16:0001:AVAIL123',
+            quantity: 1,
+            scheduledNextTermInstructions: { quantity: 8 },
+        }
         jest.spyOn(axios, 'get').mockResolvedValue({ data: subscription })
         jest.spyOn(axios, 'patch').mockResolvedValue({ data: subscription })
 
@@ -174,6 +182,7 @@ describe('Microsoft Partner Center', () => {
             '/customers/cust-1/subscriptions/1',
             expect.objectContaining({
                 autoRenewEnabled: false,
+                scheduledNextTermInstructions: null,
                 scheduledActions: [{ scheduleType: 'TermEnd', actionType: 'Cancel' }],
             }),
         )
