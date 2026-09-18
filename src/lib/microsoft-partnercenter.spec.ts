@@ -151,7 +151,9 @@ describe('Microsoft Partner Center', () => {
     it('should cancel a subscription immediately', async () => {
         const subscription = { id: '1', offerId: 'CFQ7TTC0LH16:0001:AVAIL123', quantity: 1 }
         jest.spyOn(axios, 'get').mockResolvedValue({ data: subscription })
-        jest.spyOn(axios, 'patch').mockResolvedValue({ data: { ...subscription, status: 'deleted' } })
+        jest.spyOn(axios, 'patch').mockResolvedValue({
+            data: { ...subscription, status: 'deleted' },
+        })
 
         await partnerCenter.cancelCustomerSubscription('cust-1', '1')
 

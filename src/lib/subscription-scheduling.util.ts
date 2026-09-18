@@ -36,9 +36,7 @@ export function buildProductTermFromSubscription(subscription: Subscription): Pr
     }
 
     if (!parsed.availabilityId) {
-        throw new Error(
-            `Subscription ${subscription.id} offerId is missing availabilityId segment`,
-        )
+        throw new Error(`Subscription ${subscription.id} offerId is missing availabilityId segment`)
     }
 
     return {
