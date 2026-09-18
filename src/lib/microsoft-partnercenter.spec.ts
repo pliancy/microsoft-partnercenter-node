@@ -96,6 +96,87 @@ describe('Microsoft Partner Center', () => {
         expect(result).toEqual(subscription)
     })
 
+    it('should schedule subscription renewal quantity', async () => {
+        const subscription = {
+            id: '1',
+            offerId: 'CFQ7TTC0LH16:0001:AVAIL123',
+            quantity: 10,
+            autoRenewEnabled: true,
+            billingCycle: 'monthly',
+            termDuration: 'P1M',
+        }
+        jest.spyOn(axios, 'get').mockResolvedValue({ data: subscription })
+        jest.spyOn(axios, 'patch').mockResolvedValue({ data: { ...subscription, quantity: 10 } })
+
+        await partnerCenter.scheduleSubscriptionRenewalQuantity('cust-1', '1', 8)
+
+        expect(axios.patch).toHaveBeenCalledWith(
+            '/customers/cust-1/subscriptions/1',
+            expect.objectContaining({
+                autoRenewEnabled: true,
+                scheduledNextTermInstructions: expect.objectContaining({
+                    quantity: 8,
+                    product: expect.objectContaining({
+                        productId: 'CFQ7TTC0LH16',
+                        skuId: '0001',
+                        availabilityId: 'AVAIL123',
+                    }),
+                }),
+                scheduledActions: null,
+            }),
+        )
+    })
+
+    it('should clear scheduled subscription changes', async () => {
+        const subscription = {
+            id: '1',
+            offerId: 'CFQ7TTC0LH16:0001:AVAIL123',
+            quantity: 10,
+            scheduledNextTermInstructions: { quantity: 8 },
+        }
+        jest.spyOn(axios, 'get').mockResolvedValue({ data: subscription })
+        jest.spyOn(axios, 'patch').mockResolvedValue({ data: subscription })
+
+        await partnerCenter.clearScheduledSubscriptionChanges('cust-1', '1')
+
+        expect(axios.patch).toHaveBeenCalledWith(
+            '/customers/cust-1/subscriptions/1',
+            expect.objectContaining({
+                scheduledNextTermInstructions: null,
+                scheduledActions: null,
+            }),
+        )
+    })
+
+    it('should cancel a subscription immediately', async () => {
+        const subscription = { id: '1', offerId: 'CFQ7TTC0LH16:0001:AVAIL123', quantity: 1 }
+        jest.spyOn(axios, 'get').mockResolvedValue({ data: subscription })
+        jest.spyOn(axios, 'patch').mockResolvedValue({ data: { ...subscription, status: 'deleted' } })
+
+        await partnerCenter.cancelCustomerSubscription('cust-1', '1')
+
+        expect(axios.patch).toHaveBeenCalledWith(
+            '/customers/cust-1/subscriptions/1',
+            expect.objectContaining({ status: 'deleted' }),
+        )
+    })
+
+    it('should schedule subscription cancellation at term end', async () => {
+        const subscription = { id: '1', offerId: 'CFQ7TTC0LH16:0001:AVAIL123', quantity: 1 }
+        jest.spyOn(axios, 'get').mockResolvedValue({ data: subscription })
+        jest.spyOn(axios, 'patch').mockResolvedValue({ data: subscription })
+
+        await partnerCenter.cancelCustomerSubscription('cust-1', '1', { atTermEnd: true })
+
+        expect(axios.patch).toHaveBeenCalledWith(
+            '/customers/cust-1/subscriptions/1',
+            expect.objectContaining({
+                autoRenewEnabled: false,
+                scheduledActions: [{ scheduleType: 'TermEnd', actionType: 'Cancel' }],
+            }),
+        )
+    })
+
     it('should create an order', async () => {
         const subscription = { id: '1', quantity: 16 }
         jest.spyOn(axios, 'post').mockResolvedValue({ data: subscription })

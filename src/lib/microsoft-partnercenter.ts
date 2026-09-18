@@ -22,12 +22,17 @@ import {
     SetUserRole,
     SetUserRoleResponse,
     Sku,
+    Status,
     Subscription,
     User,
     UserLicenseAssignment,
     UserRole,
 } from './types'
 import { MicrosoftApiBase } from './microsoft-api-base'
+import {
+    buildScheduledCancelAction,
+    buildScheduledNextTermInstructions,
+} from './subscription-scheduling.util'
 import axios from 'axios'
 import { ParseOne } from 'unzipper'
 import { csv } from 'csvtojson'
@@ -221,6 +226,67 @@ export class MicrosoftPartnerCenter extends MicrosoftApiBase {
         const updatedSubscription = { ...currentSubscription, ...subscription }
         const { data } = await this.httpAgent.patch(url, updatedSubscription)
         return data
+    }
+
+    /**
+     * Schedules a quantity change to take effect at the next subscription renewal.
+     * https://learn.microsoft.com/en-us/partner-center/developer/create-scheduled-changes
+     */
+    async scheduleSubscriptionRenewalQuantity(
+        customerId: string,
+        subscriptionId: string,
+        quantity: number,
+        options?: { customTermEndDate?: string | Date },
+    ): Promise<Subscription> {
+        const currentSubscription = await this.getCustomerSubscriptionById(
+            customerId,
+            subscriptionId,
+        )
+
+        return this.updateCustomerSubscription(customerId, subscriptionId, {
+            autoRenewEnabled: true,
+            scheduledNextTermInstructions: buildScheduledNextTermInstructions(
+                currentSubscription,
+                quantity,
+                options?.customTermEndDate,
+            ),
+            scheduledActions: null,
+        })
+    }
+
+    /**
+     * Clears scheduled renewal instructions for a subscription.
+     * https://learn.microsoft.com/en-us/partner-center/developer/create-scheduled-changes
+     */
+    async clearScheduledSubscriptionChanges(
+        customerId: string,
+        subscriptionId: string,
+    ): Promise<Subscription> {
+        return this.updateCustomerSubscription(customerId, subscriptionId, {
+            scheduledNextTermInstructions: null,
+            scheduledActions: null,
+        })
+    }
+
+    /**
+     * Cancels a subscription immediately (within the NCE cancellation window) or at term end.
+     * https://learn.microsoft.com/en-us/partner-center/developer/cancel-an-azure-marketplace-subscription
+     */
+    async cancelCustomerSubscription(
+        customerId: string,
+        subscriptionId: string,
+        options?: { atTermEnd?: boolean },
+    ): Promise<Subscription> {
+        if (options?.atTermEnd) {
+            return this.updateCustomerSubscription(customerId, subscriptionId, {
+                autoRenewEnabled: false,
+                scheduledActions: [buildScheduledCancelAction()],
+            })
+        }
+
+        return this.updateCustomerSubscription(customerId, subscriptionId, {
+            status: Status.Deleted,
+        })
     }
 
     async createOrder(

@@ -4,6 +4,7 @@ export default MicrosoftPartnerCenter
 
 export { MicrosoftPartnerCenter, MicrosoftGraphApi }
 export * from './lib/types'
+export * from './lib/subscription-scheduling.util'
 export * from './lib/graph-api/licenses/licenses.types'
 export * from './lib/graph-api/enterprise-applications/enterprise-applications.types'
 export * from './lib/graph-api/role-management/role-management.types'
