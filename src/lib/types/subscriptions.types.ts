@@ -1,5 +1,39 @@
 import type { Link, LinksBase } from './common.types'
 
+export interface ProductTerm {
+    productId: string
+    skuId: string
+    availabilityId: string
+    billingCycle: BillingCycle | string
+    termDuration: TermDuration | string
+    promotionId?: string
+}
+
+export interface ScheduledNextTermInstructions {
+    product: ProductTerm
+    quantity: number
+    customTermEndDate?: string | Date
+}
+
+export enum ScheduledActionType {
+    Cancel = 'Cancel',
+    RenewToNewTerm = 'RenewToNewTerm',
+    RenewToExtendedServiceTerm = 'RenewToExtendedServiceTerm',
+    Transition = 'Transition',
+}
+
+export enum ScheduledActionScheduleType {
+    TermEnd = 'TermEnd',
+    CustomDate = 'CustomDate',
+}
+
+export interface ScheduledAction {
+    scheduleType: ScheduledActionScheduleType | string
+    actionType: ScheduledActionType | string
+    effectiveDate?: string | Date
+    instructions?: ScheduledNextTermInstructions
+}
+
 export interface Subscription {
     id: string
     offerId: string
@@ -14,6 +48,7 @@ export interface Subscription {
     commitmentEndDate: Date
     cancellationAllowedUntilDate?: Date
     billingCycleEndDate?: Date
+    customTermEndDate?: string | Date
     status: Status
     autoRenewEnabled: boolean
     isTrial: boolean
@@ -21,6 +56,7 @@ export interface Subscription {
     billingCycle: BillingCycle
     termDuration: TermDuration
     renewalTermDuration?: string
+    promotionId?: string
     isMicrosoftProduct: boolean
     partnerId?: string
     attentionNeeded: boolean
@@ -38,6 +74,8 @@ export interface Subscription {
         totalQuantity: number
         details: SubscriptionRefundableQuantityDetail[]
     }
+    scheduledNextTermInstructions?: ScheduledNextTermInstructions | null
+    scheduledActions?: ScheduledAction[] | null
 }
 
 export interface SubscriptionRefundableQuantityDetail {
