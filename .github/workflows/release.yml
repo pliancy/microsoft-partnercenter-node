@@ -17,12 +17,12 @@ jobs:
       issues: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
           token: ${{ secrets.PLIBOT_PAT }}
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
       - name: Install dependencies
@@ -38,7 +38,7 @@ jobs:
           npx pinst --enable
       # Commit changes to package.json and README.md
       - name: Auto Commit
-        uses: stefanzweifel/git-auto-commit-action@v7
+        uses: stefanzweifel/git-auto-commit-action@d0b01107b5db882071f96de5dd4b54961ea93f4c # v7
         env:
           SKIP_COMMITIZEN: true
         with:
